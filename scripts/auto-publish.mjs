@@ -2819,9 +2819,6 @@ async function generateWithGemini(topic) {
       'gemini-3.7-flash',
       'gemini-3.6-flash',
       'gemini-3.5-flash',
-      'gemini-3-flash-preview',
-      'gemini-2.5-flash',
-      'gemini-2.5-pro',
     ]),
   );
 
