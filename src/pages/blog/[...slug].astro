@@ -6,6 +6,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
 import PostCard from '../../components/PostCard.astro';
+import PostEngagement from '../../components/PostEngagement.astro';
 import { categoryByName, SITE } from '../../consts';
 import {
   formatDate,
@@ -117,22 +118,7 @@ const shareUrl = new URL(postUrl(post), Astro.site ?? SITE.url).href;
         )
       }
 
-      <div class="post__share">
-        <span>이 글이 도움이 됐다면 공유해 주세요.</span>
-        <div class="post__share-links">
-          <a
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(shareUrl)}`}
-            target="_blank"
-            rel="noopener noreferrer">X (Twitter)</a
-          >
-          <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
-            target="_blank"
-            rel="noopener noreferrer">Facebook</a
-          >
-          <button type="button" id="copy-link" data-url={shareUrl}>링크 복사</button>
-        </div>
-      </div>
+      <PostEngagement slug={post.id} title={title} />
 
       <AuthorCard name={author} />
 
