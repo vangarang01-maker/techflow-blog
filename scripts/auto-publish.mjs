@@ -2813,7 +2813,17 @@ async function generateWithGemini(topic) {
     2,
   );
 
-  const candidateModels = Array.from(new Set([GEMINI_MODEL, 'gemini-2.5-flash', 'gemini-2.5-pro']));
+  const candidateModels = Array.from(
+    new Set([
+      GEMINI_MODEL,
+      'gemini-3.7-flash',
+      'gemini-3.6-flash',
+      'gemini-3.5-flash',
+      'gemini-3-flash-preview',
+      'gemini-2.5-flash',
+      'gemini-2.5-pro',
+    ]),
+  );
 
   for (const model of candidateModels) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
