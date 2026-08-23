@@ -2780,7 +2780,8 @@ const GEMINI_INSTRUCTIONS = `당신은 한국어 IT·생산성 블로그 '테크
 규칙:
 - frontmatter(--- 블록)는 절대 포함하지 마세요. 본문만 출력합니다.
 - H1(#)은 쓰지 말고 H2(##)와 H3(###)만 사용합니다.
-- 최소 3,000자 이상, 단계별 실행 안내, 비교 표(마크다운 표) 1개 이상, 인용문 형식의 팁, Q&A 형태의 문제 해결 섹션을 반드시 포함합니다.
+- 글자 수 규격: 본문 전체는 공백 포함 2,500자 ~ 4,500자 내외(반드시 2,000자 이상 6,000자 미만)로 가독성 높고 핵심적인 정보 밀도를 갖추어 작성하세요.
+- 단계별 실행 안내, 비교 표(마크다운 표) 1개, 인용문 팁, Q&A 형태의 문제 해결 섹션을 포함합니다.
 - 과장된 마케팅 문구 없이 직접 사용해 본 것처럼 구체적인 수치와 설정 경로를 씁니다.
 - 존댓말(습니다체)로 작성합니다.
 - 코드 펜스로 전체를 감싸지 마세요.`;
@@ -2812,46 +2813,53 @@ async function generateWithGemini(topic) {
     2,
   );
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+  const candidateModels = Array.from(new Set([GEMINI_MODEL, 'gemini-2.5-flash', 'gemini-2.5-pro']));
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: `${GEMINI_INSTRUCTIONS}\n\n개요:\n${outline}` }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
-      }),
-      signal: AbortSignal.timeout(90_000),
-    });
+  for (const model of candidateModels) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-    if (!response.ok) {
-      console.warn(`[gemini] HTTP ${response.status} — falling back to template`);
-      return null;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: `${GEMINI_INSTRUCTIONS}\n\n개요:\n${outline}` }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 3500 },
+        }),
+        signal: AbortSignal.timeout(90_000),
+      });
+
+      if (!response.ok) {
+        console.warn(`[gemini] ${model} HTTP ${response.status} — trying next model`);
+        continue;
+      }
+
+      const payload = await response.json();
+      const text = (payload?.candidates?.[0]?.content?.parts ?? [])
+        .map((part) => part.text ?? '')
+        .join('')
+        .trim();
+
+      const cleaned = text
+        .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+        .replace(/\n?```\s*$/i, '')
+        .replace(/^---[\s\S]*?---\s*/, '')
+        .trim();
+
+      if (cleaned.length < MIN_CHARS) {
+        console.warn(`[gemini] ${model} draft too short (${cleaned.length} chars) — trying next model`);
+        continue;
+      }
+
+      console.log(`[gemini] successfully generated via ${model}!`);
+      return cleaned;
+    } catch (error) {
+      console.warn(`[gemini] ${model} error: ${error.message} — trying next model`);
     }
-
-    const payload = await response.json();
-    const text = (payload?.candidates?.[0]?.content?.parts ?? [])
-      .map((part) => part.text ?? '')
-      .join('')
-      .trim();
-
-    const cleaned = text
-      .replace(/^```(?:markdown|md)?\s*\n?/i, '')
-      .replace(/\n?```\s*$/i, '')
-      .replace(/^---[\s\S]*?---\s*/, '')
-      .trim();
-
-    if (cleaned.length < MIN_CHARS) {
-      console.warn(`[gemini] draft too short (${cleaned.length} chars) — falling back to template`);
-      return null;
-    }
-
-    return cleaned;
-  } catch (error) {
-    console.warn(`[gemini] ${error.message} — falling back to template`);
-    return null;
   }
+
+  console.warn(`[gemini] all candidate models failed — falling back to template`);
+  return null;
 }
 
 function renderFrontmatter(topic, pubDate) {
