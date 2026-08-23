@@ -118,7 +118,7 @@ const shareUrl = new URL(postUrl(post), Astro.site ?? SITE.url).href;
         )
       }
 
-      <PostEngagement slug={post.id} title={title} />
+      <PostEngagement slug={post.id} title={title} pubDate={pubDate} />
 
       <AuthorCard name={author} />
 

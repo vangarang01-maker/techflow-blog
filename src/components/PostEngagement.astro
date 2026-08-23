@@ -2,9 +2,11 @@
 interface Props {
   slug: string;
   title: string;
+  pubDate?: Date | string;
 }
 
-const { slug, title } = Astro.props;
+const { slug, title, pubDate } = Astro.props;
+const dateStr = pubDate ? new Date(pubDate).toISOString() : '';
 ---
 
 <div class="my-8 rounded-2xl border border-steel-200 bg-gradient-to-br from-steel-50/80 to-white p-6 shadow-sm dark:border-steel-800 dark:bg-gradient-to-br dark:from-steel-900/60 dark:to-steel-950">
@@ -14,6 +16,7 @@ const { slug, title } = Astro.props;
       <button
         id="like-btn"
         data-slug={slug}
+        data-date={dateStr}
         type="button"
         class="group relative flex items-center gap-2.5 rounded-full border border-rose-200 bg-white px-5 py-2.5 text-sm font-bold text-rose-600 shadow-sm transition-all duration-200 hover:border-rose-400 hover:bg-rose-50 active:scale-95 dark:border-rose-900/50 dark:bg-steel-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
         aria-label="이 글에 공감하기"
@@ -73,10 +76,11 @@ const { slug, title } = Astro.props;
 
 <script>
   (() => {
-    const slug = document.getElementById('like-btn')?.getAttribute('data-slug');
+    const likeBtn = document.getElementById('like-btn');
+    const slug = likeBtn?.getAttribute('data-slug');
+    const dateStr = likeBtn?.getAttribute('data-date');
     if (!slug) return;
 
-    const likeBtn = document.getElementById('like-btn');
     const likeIcon = document.getElementById('like-icon');
     const likeText = document.getElementById('like-text');
     const likeCount = document.getElementById('like-count');
@@ -89,16 +93,33 @@ const { slug, title } = Astro.props;
     const STORAGE_KEY_LOCAL_VIEWS = `tf_views_${slug}`;
     const STORAGE_KEY_LOCAL_LIKES = `tf_likes_${slug}`;
 
-    // Pure 100% Actual Counter (No fake numbers)
+    // Option 1: Realistic age-proportional base values (5~6월: 500~900회/30~60공감, 7~8월: 100~350회/8~25공감)
+    function getRealisticBase(str: string, dateIso?: string | null) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      const rand = Math.abs(hash % 1000) / 1000;
+
+      const pubTime = dateIso ? new Date(dateIso).getTime() : new Date('2026-06-01').getTime();
+      const now = new Date('2026-08-23').getTime();
+      const daysDiff = Math.max(1, Math.round((now - pubTime) / (1000 * 60 * 60 * 24)));
+
+      const ageFactor = Math.min(1, daysDiff / 115);
+      const baseViews = Math.floor(120 + ageFactor * 620 + rand * 160);
+      const baseLikes = Math.floor(8 + ageFactor * 38 + rand * 14);
+
+      return { baseViews, baseLikes };
+    }
+
+    const { baseViews, baseLikes } = getRealisticBase(slug, dateStr);
+
     const localViews = parseInt(localStorage.getItem(STORAGE_KEY_LOCAL_VIEWS) || '0', 10);
-    const currentViews = localViews + 1;
-    localStorage.setItem(STORAGE_KEY_LOCAL_VIEWS, currentViews.toString());
+    const currentViews = baseViews + localViews + 1;
+    localStorage.setItem(STORAGE_KEY_LOCAL_VIEWS, (localViews + 1).toString());
     if (viewCount) viewCount.textContent = `조회 ${currentViews.toLocaleString()}회`;
 
-    // Initialize Likes (Pure actual clicks)
     let isLiked = localStorage.getItem(STORAGE_KEY_LIKED) === 'true';
     let localLikes = parseInt(localStorage.getItem(STORAGE_KEY_LOCAL_LIKES) || '0', 10);
-    let totalLikes = localLikes + (isLiked ? 1 : 0);
+    let totalLikes = baseLikes + localLikes + (isLiked ? 1 : 0);
 
     function updateLikeUI() {
       if (likeIcon) likeIcon.textContent = isLiked ? '❤️' : '🤍';
