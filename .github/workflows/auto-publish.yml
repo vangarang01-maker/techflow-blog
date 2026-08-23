@@ -1,0 +1,60 @@
+name: Auto Publish Article
+
+on:
+  schedule:
+    # 09:00 / 14:00 / 20:00 KST (UTC+9)
+    - cron: '0 0 * * *'
+    - cron: '0 5 * * *'
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate article
+        id: generate
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: npm run auto-publish
+
+      - name: Check for new file
+        id: check
+        run: |
+          if [ -n "$(git status --porcelain src/content/blog)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git status --porcelain src/content/blog
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No new article was generated."
+          fi
+
+      - name: Commit new article
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/blog
+          git commit -m "feat(blog): auto-publish new article [skip ci]"
+
+      - name: Push to origin main
+        if: steps.check.outputs.changed == 'true'
+        run: git push origin HEAD:main
