@@ -2884,7 +2884,10 @@ function normalizeMarkdown(text) {
     // Fix **"text"** or **“text”** to “**text**” (so quotes don't break CommonMark bold parsing)
     .replace(/\*\*["“](.*?)[”"]\*\*/g, '“**$1**”')
     .replace(/\*\*['‘](.*?)[’']\*\*/g, '‘**$1**’')
-    .replace(/\*\*\s*\*\*/g, '');
+    .replace(/\*\*\s*\*\*/g, '')
+    // Fix accidental strikethrough caused by ~ used for ranges (e.g. 2~3칸, 10~20%)
+    .replace(/(\d+)\s*~\s*(\d+)/g, '$1～$2')
+    .replace(/~\s*(\d+)/g, '～$1');
 }
 
 function renderFrontmatter(topic, pubDate) {
