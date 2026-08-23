@@ -1,0 +1,129 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+  /** Only these depths are listed; deeper headings would make the rail noisy. */
+  depths?: number[];
+  /** Distinguishes the mobile and desktop copies so ids stay unique. */
+  variant?: string;
+}
+
+const { headings, depths = [2, 3], variant = 'default' } = Astro.props;
+const headingId = `toc-heading-${variant}`;
+const items = headings.filter((heading) => depths.includes(heading.depth));
+const minDepth = items.length > 0 ? Math.min(...items.map((item) => item.depth)) : 2;
+---
+
+{
+  items.length > 1 && (
+    <nav class="toc" aria-labelledby={headingId}>
+      <h2 class="toc__title" id={headingId}>목차</h2>
+      <ol class="toc__list">
+        {items.map((item) => (
+          <li class="toc__item" data-level={item.depth - minDepth}>
+            <a href={`#${item.slug}`} data-toc-link={item.slug}>
+              {item.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .toc {
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    background-color: var(--surface-muted);
+    padding: 1.1rem 1.25rem;
+  }
+
+  .toc__title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: 0.75rem;
+  }
+
+  .toc__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    counter-reset: toc;
+  }
+
+  .toc__item[data-level='1'] {
+    padding-left: 0.9rem;
+  }
+
+  .toc__item a {
+    display: block;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.45rem;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .toc__item a:hover {
+    color: var(--text);
+    background-color: var(--surface-raised);
+  }
+
+  .toc__item a.is-current {
+    color: var(--accent);
+    background-color: var(--surface-raised);
+    font-weight: 600;
+  }
+
+  @media (min-width: 1024px) {
+    .toc {
+      position: sticky;
+      top: 5.75rem;
+      max-height: calc(100vh - 8rem);
+      overflow-y: auto;
+    }
+  }
+</style>
+
+<script>
+  // The mobile and desktop rails both render an anchor per heading, so each
+  // slug maps to a list of links that highlight together.
+  const links = new Map<string, HTMLAnchorElement[]>();
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')) {
+    const slug = link.dataset.tocLink!;
+    const group = links.get(slug) ?? [];
+    group.push(link);
+    links.set(slug, group);
+  }
+
+  if (links.size > 0) {
+    const targets = [...links.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
+
+    let current: HTMLAnchorElement[] = [];
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const group = links.get(entry.target.id);
+          if (!group) continue;
+          for (const link of current) link.classList.remove('is-current');
+          for (const link of group) link.classList.add('is-current');
+          current = group;
+        }
+      },
+      // Trigger as a heading crosses the upper third, matching reading position.
+      { rootMargin: '-88px 0px -66% 0px', threshold: 0 },
+    );
+
+    for (const target of targets) observer.observe(target);
+  }
+</script>

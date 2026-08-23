@@ -1,0 +1,191 @@
+---
+import { SITE, CATEGORIES, NAV_LINKS, AUTHOR } from '../consts';
+
+const year = new Date().getFullYear();
+const legalLinks = [
+  { href: '/privacy-policy', label: '개인정보처리방침' },
+  { href: '/about', label: '운영 원칙' },
+  { href: '/contact', label: '제휴 · 광고 문의' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container-page">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/">
+          <span class="brand__mark" aria-hidden="true">TF</span>
+          <span class="brand__name">{SITE.name}</span>
+        </a>
+        <p class="footer-brand__desc">{SITE.description}</p>
+        <p class="footer-brand__author">
+          <strong>{AUTHOR.name}</strong> · {AUTHOR.role}
+        </p>
+        <a class="footer-mail" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+      </div>
+
+      <nav class="footer-col" aria-label="사이트 메뉴">
+        <h2>둘러보기</h2>
+        <ul>
+          {NAV_LINKS.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+        </ul>
+      </nav>
+
+      <nav class="footer-col" aria-label="카테고리">
+        <h2>카테고리</h2>
+        <ul>
+          {
+            CATEGORIES.map((category) => (
+              <li>
+                <a href={`/blog/?category=${category.slug}`}>{category.name}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <nav class="footer-col" aria-label="정책 및 구독">
+        <h2>정책 · 구독</h2>
+        <ul>
+          {legalLinks.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+          <li><a href="/rss.xml">RSS 피드</a></li>
+          <li><a href="/sitemap-index.xml">사이트맵</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© {year} {SITE.name}. All rights reserved.</p>
+      <p class="footer-disclosure">
+        본 사이트는 Google AdSense 광고를 게재하며, 광고 수익은 콘텐츠 제작과 운영에 사용됩니다.
+        광고 개인 맞춤 설정은 <a
+          href="https://myadcenter.google.com/"
+          rel="nofollow noopener"
+          target="_blank">Google 광고 설정</a
+        >에서 변경할 수 있습니다.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 5rem;
+    border-top: 1px solid var(--border);
+    background-color: var(--surface-muted);
+    padding-block: 3rem 2rem;
+    font-size: 0.9rem;
+  }
+
+  .footer-grid {
+    display: grid;
+    gap: 2.5rem;
+    grid-template-columns: 1fr;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .brand__mark {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.6rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6 55%, #06b6d4);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .brand__name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .footer-brand__desc {
+    margin-top: 0.9rem;
+    max-width: 34ch;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .footer-brand__author {
+    margin-top: 0.9rem;
+    color: var(--text-subtle);
+    font-size: 0.85rem;
+  }
+
+  .footer-mail {
+    display: inline-block;
+    margin-top: 0.35rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .footer-col h2 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: 0.9rem;
+  }
+
+  .footer-col li + li {
+    margin-top: 0.55rem;
+  }
+
+  .footer-col a {
+    color: var(--text-muted);
+    transition: color 0.15s ease;
+  }
+
+  .footer-col a:hover {
+    color: var(--accent);
+  }
+
+  .footer-bottom {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--text-subtle);
+    font-size: 0.8rem;
+  }
+
+  .footer-disclosure {
+    max-width: 68ch;
+    line-height: 1.65;
+  }
+
+  .footer-disclosure a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  @media (min-width: 640px) {
+    .footer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .footer-grid {
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+    }
+    .footer-bottom {
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+  }
+</style>

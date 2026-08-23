@@ -1,0 +1,121 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getPublishedPosts } from '../utils/posts';
+
+const posts = (await getPublishedPosts()).slice(0, 3);
+---
+
+<Layout
+  title="페이지를 찾을 수 없습니다"
+  description="요청하신 페이지를 찾을 수 없습니다. 최근 발행한 글을 확인해 보세요."
+  noindex
+>
+  <div class="container-page page">
+    <p class="code">404</p>
+    <h1>페이지를 찾을 수 없습니다</h1>
+    <p class="desc">
+      주소가 변경되었거나 삭제된 글일 수 있습니다. 아래 최근 글을 확인하거나 전체 글 목록에서
+      찾아보세요.
+    </p>
+    <div class="actions">
+      <a class="btn btn--primary" href="/">홈으로</a>
+      <a class="btn btn--ghost" href="/blog">전체 글 보기</a>
+    </div>
+
+    {
+      posts.length > 0 && (
+        <section class="recent" aria-labelledby="recent-404">
+          <h2 id="recent-404">최근 발행한 글</h2>
+          <div class="grid">
+            {posts.map((post) => (
+              <PostCard post={post} headingLevel="h3" />
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </div>
+</Layout>
+
+<style>
+  .page {
+    padding-block: 5rem 4rem;
+    text-align: center;
+  }
+
+  .code {
+    font-size: 4rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    background: linear-gradient(100deg, #6366f1, #8b5cf6 45%, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  h1 {
+    margin-top: 0.5rem;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .desc {
+    margin: 1rem auto 0;
+    max-width: 34rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+
+  .actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 2rem;
+  }
+
+  .btn {
+    padding: 0.7rem 1.35rem;
+    border-radius: 0.7rem;
+    font-size: 0.925rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+
+  .btn--primary {
+    background-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn--ghost {
+    border-color: var(--border);
+    background-color: var(--surface-raised);
+    color: var(--text);
+  }
+
+  .recent {
+    margin-top: 4rem;
+    text-align: left;
+  }
+
+  .recent h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 1.25rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.15rem;
+  }
+
+  @media (min-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

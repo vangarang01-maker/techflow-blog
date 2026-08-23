@@ -1,0 +1,92 @@
+---
+import { AUTHOR, SITE } from '../consts';
+
+interface Props {
+  name?: string;
+  bio?: string;
+  role?: string;
+}
+
+const { name = AUTHOR.name, bio = AUTHOR.bio, role = AUTHOR.role } = Astro.props;
+const initials = name.slice(0, 2);
+---
+
+<aside class="author" aria-label="글쓴이 소개">
+  <div class="author__avatar" aria-hidden="true">{initials}</div>
+  <div class="author__body">
+    <p class="author__eyebrow">글쓴이</p>
+    <p class="author__name">{name}</p>
+    <p class="author__role">{role}</p>
+    <p class="author__bio">{bio}</p>
+    <div class="author__links">
+      <a href="/about">소개 페이지</a>
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .author {
+    display: flex;
+    gap: 1.1rem;
+    padding: 1.5rem;
+    margin-top: 3rem;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    background-color: var(--surface-muted);
+  }
+
+  .author__avatar {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6 55%, #06b6d4);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.95rem;
+  }
+
+  .author__eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+
+  .author__name {
+    margin-top: 0.3rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .author__role {
+    font-size: 0.82rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .author__bio {
+    margin-top: 0.65rem;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+  }
+
+  .author__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .author__links a {
+    color: var(--accent);
+    font-weight: 500;
+  }
+</style>

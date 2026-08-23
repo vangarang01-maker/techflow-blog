@@ -1,0 +1,436 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PostCard from '../components/PostCard.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { CATEGORIES, SITE } from '../consts';
+import { getPublishedPosts } from '../utils/posts';
+
+const posts = await getPublishedPosts();
+const featured = posts.filter((post) => post.data.featured).slice(0, 3);
+const fallbackFeatured = featured.length > 0 ? featured : posts.slice(0, 3);
+const featuredIds = new Set(fallbackFeatured.map((post) => post.id));
+const recent = posts.filter((post) => !featuredIds.has(post.id)).slice(0, 6);
+
+const countByCategory = (name: string) =>
+  posts.filter((post) => post.data.category === name).length;
+---
+
+<Layout
+  description={SITE.description}
+  breadcrumbs={[]}
+>
+  <section class="hero">
+    <div class="container-page hero__inner">
+      <p class="hero__eyebrow">
+        <span class="hero__dot" aria-hidden="true"></span>
+        직접 써보고 검증한 기록만 발행합니다
+      </p>
+      <h1 class="hero__title">
+        스마트한 일상과<br />
+        <span class="hero__accent">디지털 생산성</span> 가이드
+      </h1>
+      <p class="hero__desc">
+        맥과 PC 설정, 생산성 도구, 업무 자동화까지. 최소 2주 이상 실제 업무에 써본 뒤 측정한
+        결과만 정리합니다. 광고가 아니라 사용 기록입니다.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="/blog">전체 글 보기</a>
+        <a class="btn btn--ghost" href="/about">블로그 소개</a>
+      </div>
+      <dl class="hero__stats">
+        <div>
+          <dt>발행 글</dt>
+          <dd>{posts.length}편</dd>
+        </div>
+        <div>
+          <dt>다루는 주제</dt>
+          <dd>{CATEGORIES.length}개 카테고리</dd>
+        </div>
+        <div>
+          <dt>검증 기준</dt>
+          <dd>최소 2주 실사용</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section container-page" aria-labelledby="categories-heading">
+    <div class="section__head">
+      <h2 id="categories-heading">카테고리</h2>
+      <p>관심 있는 주제부터 살펴보세요.</p>
+    </div>
+    <ul class="chips">
+      {
+        CATEGORIES.map((category) => (
+          <li>
+            <a class="chip" href={`/blog/?category=${category.slug}`}>
+              <span class="chip__icon" aria-hidden="true">
+                {category.icon}
+              </span>
+              <span class="chip__body">
+                <span class="chip__name">{category.name}</span>
+                <span class="chip__desc">{category.description}</span>
+              </span>
+              <span class="chip__count">{countByCategory(category.name)}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <div class="container-page">
+    <AdSlot variant="banner" label="광고" />
+  </div>
+
+  <section class="section container-page" aria-labelledby="featured-heading">
+    <div class="section__head">
+      <h2 id="featured-heading">추천 아티클</h2>
+      <a class="section__link" href="/blog">전체 보기 →</a>
+    </div>
+    <div class="grid grid--featured">
+      {
+        fallbackFeatured.map((post, index) => (
+          <PostCard
+            post={post}
+            variant="featured"
+            headingLevel="h3"
+            loading={index === 0 ? 'eager' : 'lazy'}
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section container-page" aria-labelledby="recent-heading">
+    <div class="section__head">
+      <h2 id="recent-heading">최근 글</h2>
+      <a class="section__link" href="/blog">더 보기 →</a>
+    </div>
+    {
+      recent.length > 0 ? (
+        <div class="grid grid--recent">
+          {recent.map((post) => (
+            <PostCard post={post} headingLevel="h3" />
+          ))}
+        </div>
+      ) : (
+        <p class="empty">곧 새로운 글이 올라옵니다.</p>
+      )
+    }
+  </section>
+
+  <section class="section container-page" aria-labelledby="subscribe-heading">
+    <div class="cta">
+      <div>
+        <h2 id="subscribe-heading">새 글을 놓치지 않으려면</h2>
+        <p>
+          RSS로 구독하면 발행 즉시 받아볼 수 있습니다. 제휴나 제보는 이메일로 보내주세요.
+        </p>
+      </div>
+      <div class="cta__actions">
+        <a class="btn btn--primary" href="/rss.xml">RSS 구독</a>
+        <a class="btn btn--ghost" href="/contact">문의하기</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(60rem 28rem at 12% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+      radial-gradient(48rem 24rem at 92% 0%, color-mix(in srgb, #06b6d4 14%, transparent), transparent 70%),
+      var(--surface);
+  }
+
+  .hero__inner {
+    padding-block: 4.5rem 4rem;
+    max-width: 52rem;
+  }
+
+  .hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background-color: var(--surface-raised);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .hero__dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background-color: #22c55e;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #22c55e 25%, transparent);
+  }
+
+  .hero__title {
+    margin-top: 1.5rem;
+    font-size: clamp(2.1rem, 6vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.22;
+    letter-spacing: -0.035em;
+  }
+
+  .hero__accent {
+    background: linear-gradient(100deg, #6366f1, #8b5cf6 45%, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero__desc {
+    margin-top: 1.25rem;
+    max-width: 44rem;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 2rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1.35rem;
+    border-radius: 0.7rem;
+    font-size: 0.94rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn--primary {
+    background-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn--ghost {
+    border-color: var(--border);
+    background-color: var(--surface-raised);
+    color: var(--text);
+  }
+
+  .btn--ghost:hover {
+    background-color: var(--surface-muted);
+  }
+
+  .hero__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2.75rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--border);
+    max-width: 34rem;
+  }
+
+  .hero__stats dt {
+    font-size: 0.75rem;
+    color: var(--text-subtle);
+  }
+
+  .hero__stats dd {
+    margin-top: 0.25rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .section {
+    padding-block: 3.25rem;
+  }
+
+  .section__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section__head h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+
+  .section__head p {
+    color: var(--text-subtle);
+    font-size: 0.9rem;
+  }
+
+  .section__link {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .chips {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    background-color: var(--surface-raised);
+    transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+  }
+
+  .chip:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+    background-color: var(--surface-muted);
+  }
+
+  .chip__icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: none;
+    border-radius: 0.7rem;
+    background-color: var(--accent-soft);
+    font-size: 1.15rem;
+  }
+
+  .chip__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .chip__name {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .chip__desc {
+    font-size: 0.82rem;
+    color: var(--text-subtle);
+    line-height: 1.5;
+  }
+
+  .chip__count {
+    margin-left: auto;
+    flex: none;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background-color: var(--surface-muted);
+    border: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-subtle);
+  }
+
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+  }
+
+  .empty {
+    padding: 2.5rem;
+    text-align: center;
+    color: var(--text-subtle);
+    border: 1px dashed var(--border);
+    border-radius: 1rem;
+  }
+
+  .cta {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 2rem;
+    border-radius: 1.25rem;
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(40rem 20rem at 0% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+      var(--surface-muted);
+  }
+
+  .cta h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+
+  .cta p {
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 46ch;
+  }
+
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  @media (min-width: 640px) {
+    .chips {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .grid--recent {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero__inner {
+      padding-block: 6rem 5rem;
+    }
+    .chips {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .chip {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      position: relative;
+    }
+    .chip__count {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      margin-left: 0;
+    }
+    .grid--featured,
+    .grid--recent {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .cta {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.5rem;
+    }
+  }
+</style>

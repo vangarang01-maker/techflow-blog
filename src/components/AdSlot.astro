@@ -1,0 +1,136 @@
+---
+import { ADSENSE } from '../consts';
+
+interface Props {
+  /** AdSense ad unit id (data-ad-slot). Required for live ads.
+   *  Named `slotId` because `slot` is a reserved Astro attribute. */
+  slotId?: string;
+  /** Visual footprint. Drives the reserved height so ads never shift layout. */
+  variant?: 'in-article' | 'banner' | 'sidebar' | 'square';
+  format?: string;
+  /** Set false for fixed-size units such as the sidebar rail. */
+  responsive?: boolean;
+  label?: string;
+  class?: string;
+}
+
+const {
+  slotId,
+  variant = 'banner',
+  format = variant === 'in-article' ? 'fluid' : 'auto',
+  responsive = variant !== 'sidebar',
+  label = '광고',
+  class: className = '',
+} = Astro.props;
+
+/* Height is reserved up front to protect CLS whether or not an ad fills. */
+const MIN_HEIGHT: Record<NonNullable<Props['variant']>, string> = {
+  'in-article': '280px',
+  banner: '110px',
+  sidebar: '600px',
+  square: '250px',
+};
+
+const live = ADSENSE.enabled && ADSENSE.client !== '' && Boolean(slotId);
+const minHeight = MIN_HEIGHT[variant];
+---
+
+<aside
+  class:list={['ad-slot', `ad-slot--${variant}`, className]}
+  style={`--ad-min-height:${minHeight}`}
+  aria-label={label}
+  data-ad-variant={variant}
+>
+  <span class="ad-slot__label">{label}</span>
+
+  {
+    live ? (
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={ADSENSE.client}
+        data-ad-slot={slotId}
+        data-ad-format={format}
+        data-ad-layout={variant === 'in-article' ? 'in-article' : undefined}
+        data-full-width-responsive={responsive ? 'true' : 'false'}
+      />
+    ) : (
+      <div class="ad-slot__placeholder" role="presentation">
+        <span class="ad-slot__placeholder-title">Advertisement</span>
+        <span class="ad-slot__placeholder-meta">
+          {slotId ? `slot ${slotId}` : '광고 슬롯 준비 중'} · {variant}
+        </span>
+      </div>
+    )
+  }
+</aside>
+
+{
+  live && (
+    <script is:inline>
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  )
+}
+
+<style>
+  .ad-slot {
+    display: block;
+    width: 100%;
+    margin-block: 2rem;
+  }
+
+  .ad-slot--sidebar {
+    margin-block: 0;
+    position: sticky;
+    top: 6rem;
+  }
+
+  .ad-slot__label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+
+  .ad-slot .adsbygoogle {
+    min-height: var(--ad-min-height);
+  }
+
+  .ad-slot__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: var(--ad-min-height);
+    border: 1px dashed var(--border);
+    border-radius: 0.85rem;
+    background:
+      repeating-linear-gradient(
+        135deg,
+        transparent,
+        transparent 10px,
+        color-mix(in srgb, var(--border) 45%, transparent) 10px,
+        color-mix(in srgb, var(--border) 45%, transparent) 11px
+      ),
+      var(--surface-muted);
+    color: var(--text-subtle);
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .ad-slot__placeholder-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .ad-slot__placeholder-meta {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+</style>

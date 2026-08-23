@@ -1,0 +1,6 @@
+# ads.txt — Authorized Digital Sellers (IAB Tech Lab)
+# Replace pub-0000000000000000 with the publisher id issued after
+# Google AdSense approval, then redeploy. AdSense verifies this file at
+# https://techflow-guide.vercel.app/ads.txt
+#
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

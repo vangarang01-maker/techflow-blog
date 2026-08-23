@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="TechFlow">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="0.55" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <path d="M136 172h240M256 172v192" stroke="#fff" stroke-width="34" stroke-linecap="round"/>
+  <path d="M330 268c34 0 58 22 58 52s-24 52-58 52" stroke="#fff" stroke-width="26" stroke-linecap="round" fill="none" opacity="0.85"/>
+</svg>

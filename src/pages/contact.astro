@@ -1,0 +1,449 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SITE } from '../consts';
+
+const inquiryTypes = [
+  { value: '콘텐츠 제보 · 수정 요청', label: '콘텐츠 제보 · 수정 요청' },
+  { value: '광고 · 제휴 문의', label: '광고 · 제휴 문의' },
+  { value: '제품 리뷰 요청', label: '제품 리뷰 요청' },
+  { value: '개인정보 관련 요청', label: '개인정보 관련 요청 (열람·삭제)' },
+  { value: '기타 문의', label: '기타 문의' },
+];
+
+const channels = [
+  {
+    title: '일반 · 제보 문의',
+    value: SITE.email,
+    href: `mailto:${SITE.email}`,
+    note: '영업일 기준 3일 이내 답변',
+  },
+  {
+    title: '광고 · 제휴',
+    value: `ads@techflow-guide.com`,
+    href: 'mailto:ads@techflow-guide.com',
+    note: '매체 소개서 요청 가능',
+  },
+  {
+    title: '개인정보 보호책임자',
+    value: `privacy@techflow-guide.com`,
+    href: 'mailto:privacy@techflow-guide.com',
+    note: '열람·정정·삭제 요청 접수',
+  },
+];
+
+const faqs = [
+  {
+    q: '제품 리뷰를 의뢰하고 싶습니다.',
+    a: '제품 제공 여부와 관계없이 리뷰 내용에는 관여하실 수 없습니다. 최소 2주 실사용 후 장단점을 모두 기재하며, 대가를 받은 경우 본문 상단에 유료 광고 포함을 표기합니다. 이 조건에 동의하시면 광고·제휴 메일로 연락 주세요.',
+  },
+  {
+    q: '글에 오류가 있습니다.',
+    a: '해당 글 URL과 문제가 되는 문장을 함께 보내 주시면 확인 후 수정하고, 본문에 수정일을 표기합니다. 사실관계 오류는 확인 즉시 반영합니다.',
+  },
+  {
+    q: '글을 인용하거나 번역해도 되나요?',
+    a: '출처와 원문 링크를 밝히는 조건으로 일부 인용은 자유롭게 가능합니다. 전문 전재나 번역 게재는 사전에 서면 동의를 받아 주세요.',
+  },
+  {
+    q: '내 정보를 삭제하고 싶습니다.',
+    a: '개인정보 보호책임자 메일로 요청해 주시면 관련 기록을 확인하고 지체 없이 처리합니다. 자세한 내용은 개인정보처리방침을 참고해 주세요.',
+  },
+];
+---
+
+<Layout
+  title="문의하기"
+  description="TechFlow에 제보, 광고·제휴, 개인정보 관련 문의를 보내는 방법. 공식 이메일 주소와 문의 양식, 자주 묻는 질문을 안내합니다."
+  breadcrumbs={[{ name: '문의', url: '/contact' }]}
+>
+  <div class="container-page page">
+    <header class="page__head">
+      <p class="page__eyebrow">Contact</p>
+      <h1>무엇이든 물어보세요</h1>
+      <p class="page__lead">
+        오류 제보, 다뤄줬으면 하는 주제, 광고·제휴 제안 모두 환영합니다. 실제 사람이 직접 읽고
+        답변합니다.
+      </p>
+    </header>
+
+    <section class="channels" aria-label="문의 채널">
+      {
+        channels.map((channel) => (
+          <div class="channel">
+            <h2>{channel.title}</h2>
+            <a href={channel.href}>{channel.value}</a>
+            <p>{channel.note}</p>
+          </div>
+        ))
+      }
+    </section>
+
+    <div class="layout">
+      <section class="form-section" aria-labelledby="form-heading">
+        <h2 id="form-heading">문의 양식</h2>
+        <p class="form-section__note">
+          아래 양식을 작성하면 기본 메일 앱이 열리며 내용이 자동으로 채워집니다. 메일 앱을 쓰지
+          않는 경우 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>로 직접 보내 주세요.
+        </p>
+
+        <!-- Static site: the form composes a prefilled mailto: instead of
+             posting anywhere, so no visitor data is transmitted or stored. -->
+        <form id="contact-form" novalidate>
+          <div class="field">
+            <label for="name">이름 <span aria-hidden="true">*</span></label>
+            <input id="name" name="name" type="text" required autocomplete="name" />
+          </div>
+
+          <div class="field">
+            <label for="email">회신받을 이메일 <span aria-hidden="true">*</span></label>
+            <input id="email" name="email" type="email" required autocomplete="email" />
+          </div>
+
+          <div class="field">
+            <label for="type">문의 유형</label>
+            <select id="type" name="type">
+              {inquiryTypes.map((type) => <option value={type.value}>{type.label}</option>)}
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="subject">제목 <span aria-hidden="true">*</span></label>
+            <input id="subject" name="subject" type="text" required />
+          </div>
+
+          <div class="field">
+            <label for="message">내용 <span aria-hidden="true">*</span></label>
+            <textarea id="message" name="message" rows="7" required></textarea>
+          </div>
+
+          <label class="checkbox">
+            <input id="consent" name="consent" type="checkbox" required />
+            <span>
+              문의 처리를 위해 이름과 이메일 주소가 수집되는 데 동의합니다.
+              <a href="/privacy-policy">개인정보처리방침</a> 보기
+            </span>
+          </label>
+
+          <button type="submit" class="btn btn--primary">메일 앱으로 문의 보내기</button>
+          <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <aside class="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">자주 묻는 질문</h2>
+        {
+          faqs.map((faq) => (
+            <details>
+              <summary>{faq.q}</summary>
+              <p>{faq.a}</p>
+            </details>
+          ))
+        }
+
+        <div class="response">
+          <h3>답변 안내</h3>
+          <ul>
+            <li>평일 오전 10시~오후 6시(KST)에 확인합니다.</li>
+            <li>영업일 기준 3일 이내 회신을 원칙으로 합니다.</li>
+            <li>광고성 대량 발송 메일에는 답변하지 않습니다.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .page {
+    max-width: 64rem;
+    padding-block: 3rem 4rem;
+  }
+
+  .page__eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .page__head h1 {
+    margin-top: 0.5rem;
+    font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .page__lead {
+    margin-top: 1rem;
+    max-width: 46rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+
+  .channels {
+    display: grid;
+    gap: 1rem;
+    margin-top: 2.5rem;
+  }
+
+  .channel {
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    background-color: var(--surface-raised);
+  }
+
+  .channel h2 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+
+  .channel a {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent);
+    word-break: break-all;
+  }
+
+  .channel p {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--text-subtle);
+  }
+
+  .layout {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: 3rem;
+  }
+
+  h2:not(.channel h2) {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+
+  .form-section__note {
+    margin-top: 0.75rem;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  .form-section__note a,
+  .checkbox a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  form {
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  label span[aria-hidden] {
+    color: #ef4444;
+  }
+
+  input[type='text'],
+  input[type='email'],
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 0.65rem;
+    background-color: var(--surface-raised);
+    color: var(--text);
+    font-size: 0.925rem;
+    font-family: inherit;
+  }
+
+  textarea {
+    resize: vertical;
+    line-height: 1.7;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .checkbox input {
+    margin-top: 0.2rem;
+    accent-color: var(--accent);
+  }
+
+  .btn {
+    justify-self: start;
+    padding: 0.75rem 1.4rem;
+    border-radius: 0.7rem;
+    font-size: 0.925rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+
+  .btn--primary {
+    background-color: var(--accent);
+    color: #fff;
+  }
+
+  .form-status {
+    font-size: 0.85rem;
+    color: var(--text-subtle);
+    min-height: 1.2em;
+  }
+
+  .form-status[data-state='error'] {
+    color: #ef4444;
+  }
+
+  .faq details {
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background-color: var(--surface-raised);
+    padding: 0.9rem 1.1rem;
+    margin-top: 0.75rem;
+  }
+
+  .faq summary {
+    cursor: pointer;
+    font-size: 0.92rem;
+    font-weight: 600;
+    list-style: none;
+  }
+
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq summary::before {
+    content: '＋ ';
+    color: var(--accent);
+  }
+
+  .faq details[open] summary::before {
+    content: '－ ';
+  }
+
+  .faq details p {
+    margin-top: 0.7rem;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+  }
+
+  .response {
+    margin-top: 1.75rem;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    background-color: var(--surface-muted);
+  }
+
+  .response h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+
+  .response ul {
+    display: grid;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    list-style: disc;
+    padding-left: 1.1rem;
+  }
+
+  .response li::marker {
+    color: var(--accent);
+  }
+
+  @media (min-width: 640px) {
+    .channels {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .layout {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 3rem;
+    }
+  }
+</style>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const status = document.getElementById('form-status');
+
+  function setStatus(message: string, state: 'ok' | 'error' | '' = '') {
+    if (!status) return;
+    status.textContent = message;
+    if (state) status.dataset.state = state;
+    else delete status.dataset.state;
+  }
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    if (!form.reportValidity()) {
+      setStatus('필수 항목을 모두 채워 주세요.', 'error');
+      return;
+    }
+
+    const data = new FormData(form);
+    const name = String(data.get('name') ?? '').trim();
+    const email = String(data.get('email') ?? '').trim();
+    const type = String(data.get('type') ?? '기타 문의');
+    const subject = String(data.get('subject') ?? '').trim();
+    const message = String(data.get('message') ?? '').trim();
+
+    const body = [
+      `문의 유형: ${type}`,
+      `이름: ${name}`,
+      `회신 이메일: ${email}`,
+      '',
+      message,
+    ].join('\n');
+
+    const href =
+      `mailto:contact@techflow-guide.com` +
+      `?subject=${encodeURIComponent(`[${type}] ${subject}`)}` +
+      `&body=${encodeURIComponent(body)}`;
+
+    window.location.href = href;
+    setStatus('메일 앱을 열었습니다. 창이 열리지 않으면 직접 메일을 보내 주세요.', 'ok');
+  });
+</script>

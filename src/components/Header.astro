@@ -1,0 +1,340 @@
+---
+import { NAV_LINKS, SITE, CATEGORIES } from '../consts';
+
+const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (href: string) =>
+  href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+---
+
+<header class="site-header">
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+
+  <div class="container-page site-header__inner">
+    <a class="brand" href="/" aria-label={`${SITE.name} 홈`}>
+      <span class="brand__mark" aria-hidden="true">TF</span>
+      <span class="brand__text">
+        <span class="brand__name">{SITE.name}</span>
+        <span class="brand__tagline">{SITE.tagline}</span>
+      </span>
+    </a>
+
+    <nav class="nav-desktop" aria-label="주요 메뉴">
+      <ul>
+        {
+          NAV_LINKS.map((link) => (
+            <li>
+              <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button
+        type="button"
+        class="icon-button"
+        id="theme-toggle"
+        aria-label="다크 모드 전환"
+        title="다크 모드 전환"
+      >
+        <svg class="icon icon--sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path
+            d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+          ></path>
+        </svg>
+        <svg class="icon icon--moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="icon-button nav-toggle"
+        id="nav-toggle"
+        aria-label="메뉴 열기"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+      >
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <nav class="nav-mobile" id="mobile-nav" aria-label="모바일 메뉴" hidden>
+    <div class="container-page">
+      <ul class="nav-mobile__primary">
+        {
+          NAV_LINKS.map((link) => (
+            <li>
+              <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="nav-mobile__heading">카테고리</p>
+      <ul class="nav-mobile__categories">
+        {
+          CATEGORIES.map((category) => (
+            <li>
+              <a href={`/blog/?category=${category.slug}`}>
+                <span aria-hidden="true">{category.icon}</span> {category.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: color-mix(in srgb, var(--surface) 85%, transparent);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -3rem;
+    z-index: 60;
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.5rem;
+    background-color: var(--accent);
+    color: #fff;
+    font-size: 0.875rem;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus {
+    top: 0.75rem;
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    height: 4.25rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  .brand__mark {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: none;
+    border-radius: 0.7rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6 55%, #06b6d4);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .brand__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .brand__name {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .brand__tagline {
+    font-size: 0.7rem;
+    color: var(--text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-desktop {
+    display: none;
+  }
+
+  .nav-desktop ul {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .nav-desktop a {
+    display: inline-block;
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.6rem;
+    font-size: 0.925rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .nav-desktop a:hover {
+    color: var(--text);
+    background-color: var(--surface-muted);
+  }
+
+  .nav-desktop a[aria-current='page'] {
+    color: var(--accent);
+    background-color: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .icon-button {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.65rem;
+    border: 1px solid var(--border);
+    background-color: var(--surface-raised);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .icon-button:hover {
+    color: var(--text);
+    background-color: var(--surface-muted);
+  }
+
+  .icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .icon--moon {
+    display: none;
+  }
+  :global([data-theme='dark']) .icon--sun {
+    display: none;
+  }
+  :global([data-theme='dark']) .icon--moon {
+    display: block;
+  }
+
+  .nav-mobile {
+    border-top: 1px solid var(--border);
+    background-color: var(--surface);
+    padding-block: 1rem 1.5rem;
+  }
+
+  .nav-mobile[hidden] {
+    display: none;
+  }
+
+  .nav-mobile__primary a {
+    display: block;
+    padding: 0.7rem 0.5rem;
+    border-radius: 0.6rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .nav-mobile__primary a[aria-current='page'] {
+    color: var(--accent);
+    background-color: var(--accent-soft);
+  }
+
+  .nav-mobile__heading {
+    margin: 1rem 0 0.5rem;
+    padding-left: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+
+  .nav-mobile__categories {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .nav-mobile__categories a {
+    display: block;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    background-color: var(--surface-muted);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 768px) {
+    .nav-desktop {
+      display: block;
+    }
+    .nav-toggle,
+    .nav-mobile {
+      display: none;
+    }
+    .brand__tagline {
+      max-width: 18rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .brand__tagline {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('mobile-nav');
+
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    toggle.setAttribute('aria-label', open ? '메뉴 열기' : '메뉴 닫기');
+    if (menu) menu.hidden = open;
+  });
+
+  const themeToggle = document.getElementById('theme-toggle');
+  themeToggle?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem('techflow-theme', next);
+    } catch {
+      /* storage blocked (private mode) — theme still applies for this page */
+    }
+  });
+</script>

@@ -1,0 +1,528 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SITE } from '../consts';
+
+const effectiveDate = '2026년 8월 1일';
+const lastUpdated = '2026년 8월 20일';
+
+const sections = [
+  { id: 'overview', title: '1. 개요' },
+  { id: 'collect', title: '2. 수집하는 정보' },
+  { id: 'logfiles', title: '3. 로그 파일' },
+  { id: 'cookies', title: '4. 쿠키와 웹 비콘' },
+  { id: 'adsense', title: '5. Google AdSense와 제3자 광고' },
+  { id: 'analytics', title: '6. 분석 도구' },
+  { id: 'purpose', title: '7. 이용 목적과 법적 근거' },
+  { id: 'retention', title: '8. 보유 기간' },
+  { id: 'gdpr', title: '9. GDPR (유럽 이용자) 고지' },
+  { id: 'ccpa', title: '10. CCPA/CPRA (캘리포니아 이용자) 고지' },
+  { id: 'korea', title: '11. 국내 이용자 안내 (개인정보보호법)' },
+  { id: 'children', title: '12. 아동의 개인정보' },
+  { id: 'security', title: '13. 안전성 확보 조치' },
+  { id: 'thirdparty', title: '14. 외부 링크' },
+  { id: 'changes', title: '15. 방침 변경' },
+  { id: 'contact', title: '16. 문의처' },
+];
+---
+
+<Layout
+  title="개인정보처리방침"
+  description="TechFlow의 개인정보처리방침입니다. Google AdSense 쿠키, 로그 파일, 제3자 광고 게재, GDPR 및 CCPA 대응 사항을 안내합니다."
+  breadcrumbs={[{ name: '개인정보처리방침', url: '/privacy-policy' }]}
+>
+  <div class="container-page page">
+    <header class="page__head">
+      <p class="page__eyebrow">Legal</p>
+      <h1>개인정보처리방침</h1>
+      <p class="page__meta">
+        시행일: {effectiveDate} · 최종 개정일: {lastUpdated}
+      </p>
+    </header>
+
+    <nav class="toc" aria-label="목차">
+      <h2>목차</h2>
+      <ol>
+        {sections.map((section) => <li><a href={`#${section.id}`}>{section.title}</a></li>)}
+      </ol>
+    </nav>
+
+    <div class="legal">
+      <section id="overview">
+        <h2>1. 개요</h2>
+        <p>
+          {SITE.name}(이하 “본 사이트”)은 이용자의 개인정보를 중요하게 생각하며, 관련 법령을
+          준수합니다. 본 방침은 본 사이트({SITE.url})가 어떤 정보를 수집하고, 어떻게 이용하며,
+          이용자가 어떤 권리를 행사할 수 있는지를 설명합니다.
+        </p>
+        <p>
+          본 사이트를 이용함으로써 이용자는 본 방침에 동의하는 것으로 간주됩니다. 동의하지 않는
+          경우 사이트 이용을 중단해 주시기 바랍니다.
+        </p>
+      </section>
+
+      <section id="collect">
+        <h2>2. 수집하는 정보</h2>
+        <h3>2.1 이용자가 직접 제공하는 정보</h3>
+        <ul>
+          <li>문의 시 제공하는 이름, 이메일 주소, 문의 내용</li>
+          <li>댓글이나 제보 시 자발적으로 기재한 정보</li>
+        </ul>
+        <p>
+          본 사이트의 문의 양식은 서버로 데이터를 전송하지 않으며, 이용자의 메일 프로그램을 여는
+          방식으로 동작합니다. 따라서 이용자가 메일을 발송하기 전까지 본 사이트는 어떠한 정보도
+          수집하지 않습니다.
+        </p>
+
+        <h3>2.2 자동으로 수집되는 정보</h3>
+        <ul>
+          <li>IP 주소(일부 마스킹 처리), 브라우저 종류 및 버전, 운영체제</li>
+          <li>방문 일시, 체류 시간, 조회한 페이지, 유입 경로(리퍼러)</li>
+          <li>기기 유형, 화면 해상도, 언어 및 지역 설정</li>
+          <li>광고 노출 및 클릭 관련 식별자</li>
+        </ul>
+        <p>
+          이 정보들은 개인을 특정하기 위한 목적이 아니라, 사이트 성능 개선과 광고 게재를 위해
+          집계 형태로 처리됩니다.
+        </p>
+      </section>
+
+      <section id="logfiles">
+        <h2>3. 로그 파일</h2>
+        <p>
+          본 사이트는 대부분의 웹사이트와 마찬가지로 로그 파일을 사용합니다. 로그 파일에는 IP
+          주소, 브라우저 유형, 인터넷 서비스 제공자(ISP), 날짜 및 시간 기록, 유입/이탈 페이지,
+          클릭 수가 기록됩니다.
+        </p>
+        <p>
+          이 정보는 개인을 식별할 수 있는 정보와 연결되지 않으며, 사이트 운영 동향 분석, 관리,
+          이용자 이동 경로 추적, 인구통계 정보 수집 목적으로만 사용됩니다. 호스팅 제공업체
+          (Vercel Inc.)가 서버 로그를 자체 정책에 따라 보관할 수 있습니다.
+        </p>
+      </section>
+
+      <section id="cookies">
+        <h2>4. 쿠키와 웹 비콘</h2>
+        <p>
+          쿠키는 웹사이트가 이용자의 브라우저에 저장하는 작은 텍스트 파일입니다. 본 사이트는
+          다음과 같은 쿠키 및 유사 기술을 사용합니다.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>목적</th>
+                <th>보관 주체</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>필수 저장소</td>
+                <td>다크 모드 등 화면 설정 기억 (localStorage)</td>
+                <td>본 사이트 (브라우저 내 저장)</td>
+              </tr>
+              <tr>
+                <td>광고 쿠키</td>
+                <td>맞춤형 광고 게재, 중복 노출 제한, 광고 성과 측정</td>
+                <td>Google 및 광고 파트너</td>
+              </tr>
+              <tr>
+                <td>분석 쿠키</td>
+                <td>방문 통계 및 콘텐츠 개선</td>
+                <td>분석 서비스 제공자</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          이용자는 브라우저 설정에서 쿠키를 차단하거나 삭제할 수 있습니다. 다만 쿠키를 차단하면
+          일부 기능이 정상 동작하지 않을 수 있습니다. 브라우저별 설정 방법은 각 브라우저의 도움말
+          페이지를 참고해 주세요.
+        </p>
+      </section>
+
+      <section id="adsense">
+        <h2>5. Google AdSense와 제3자 광고</h2>
+        <p>
+          본 사이트는 Google AdSense를 통해 광고를 게재합니다. 제3자 광고 서버 또는 광고
+          네트워크가 사용하는 기술은 이용자의 브라우저로 직접 광고와 링크를 전송하며, 이 과정에서
+          해당 사업자가 자동으로 이용자의 IP 주소를 수신합니다.
+        </p>
+        <ul>
+          <li>
+            Google을 포함한 제3자 공급업체는 <strong>쿠키를 사용하여</strong> 이용자가 본
+            사이트나 다른 웹사이트를 방문한 기록을 바탕으로 광고를 게재합니다.
+          </li>
+          <li>
+            Google은 광고 쿠키(DoubleClick DART 쿠키를 포함)를 사용해 이용자의 관심사에 기반한
+            맞춤 광고를 제공합니다.
+          </li>
+          <li>
+            본 사이트 운영자는 제3자 광고 사업자가 사용하는 쿠키에 접근하거나 이를 통제할 수
+            없습니다.
+          </li>
+        </ul>
+        <p>
+          이용자는 <a href="https://myadcenter.google.com/" rel="nofollow noopener" target="_blank"
+            >Google 광고 설정</a
+          >에서 맞춤 광고를 해제할 수 있으며,
+          <a href="https://www.aboutads.info/choices/" rel="nofollow noopener" target="_blank"
+            >aboutads.info</a
+          > 또는
+          <a href="https://www.youronlinechoices.eu/" rel="nofollow noopener" target="_blank"
+            >Your Online Choices</a
+          >에서 다수 광고 네트워크의 맞춤 광고를 일괄 해제할 수 있습니다.
+        </p>
+        <p>
+          Google의 데이터 처리 방식에 관한 자세한 내용은
+          <a
+            href="https://policies.google.com/technologies/partner-sites"
+            rel="nofollow noopener"
+            target="_blank">Google 파트너 사이트 정책</a
+          >을 참고해 주세요.
+        </p>
+      </section>
+
+      <section id="analytics">
+        <h2>6. 분석 도구</h2>
+        <p>
+          본 사이트는 방문 통계 확인을 위해 웹 분석 서비스를 이용할 수 있습니다. 분석 서비스는
+          쿠키 또는 유사 기술로 익명화된 방문 정보를 수집하며, IP 주소는 가능한 경우 익명화하여
+          처리합니다. 수집된 정보는 콘텐츠 개선 목적 외에 사용되지 않습니다.
+        </p>
+      </section>
+
+      <section id="purpose">
+        <h2>7. 이용 목적과 법적 근거</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>처리 목적</th>
+                <th>처리하는 정보</th>
+                <th>법적 근거 (GDPR 기준)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>사이트 제공 및 보안 유지</td>
+                <td>접속 로그, IP</td>
+                <td>정당한 이익 (제6조 제1항 f호)</td>
+              </tr>
+              <tr>
+                <td>문의 응대</td>
+                <td>이름, 이메일, 문의 내용</td>
+                <td>동의 및 계약 이행 (제6조 제1항 a·b호)</td>
+              </tr>
+              <tr>
+                <td>맞춤형 광고 게재</td>
+                <td>광고 식별자, 쿠키</td>
+                <td>동의 (제6조 제1항 a호)</td>
+              </tr>
+              <tr>
+                <td>통계 및 콘텐츠 개선</td>
+                <td>익명화된 방문 데이터</td>
+                <td>정당한 이익 (제6조 제1항 f호)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="retention">
+        <h2>8. 보유 기간</h2>
+        <ul>
+          <li>문의 관련 정보: 답변 완료 후 1년 보관 후 파기</li>
+          <li>서버 접속 로그: 호스팅 제공업체 정책에 따라 최대 30일</li>
+          <li>광고 및 분석 쿠키: 각 사업자가 정한 만료 기간 (통상 최대 24개월)</li>
+        </ul>
+        <p>보유 기간이 지난 정보는 지체 없이 복구 불가능한 방법으로 파기합니다.</p>
+      </section>
+
+      <section id="gdpr">
+        <h2>9. GDPR (유럽 이용자) 고지</h2>
+        <p>
+          유럽경제지역(EEA), 영국, 스위스에 거주하는 이용자는 일반 개인정보 보호 규정(GDPR)에 따라
+          다음 권리를 가집니다.
+        </p>
+        <ul>
+          <li><strong>열람권</strong> — 처리 중인 본인 정보의 사본을 요청할 권리</li>
+          <li><strong>정정권</strong> — 부정확한 정보의 수정을 요구할 권리</li>
+          <li><strong>삭제권</strong> — 이른바 “잊힐 권리”</li>
+          <li><strong>처리 제한권</strong> — 특정 조건에서 처리 중단을 요구할 권리</li>
+          <li><strong>데이터 이동권</strong> — 구조화된 형식으로 정보를 제공받을 권리</li>
+          <li><strong>반대권</strong> — 정당한 이익에 근거한 처리에 이의를 제기할 권리</li>
+          <li><strong>동의 철회권</strong> — 언제든지 동의를 철회할 권리</li>
+        </ul>
+        <p>
+          EEA 이용자에게는 광고 쿠키 사용 전 동의를 요청하며, IAB TCF 프레임워크를 준수하는
+          동의 관리 도구를 통해 선택을 관리할 수 있습니다. 권리 행사 요청은 아래 문의처로
+          보내주시면 30일 이내에 처리합니다. 처리 결과에 이의가 있는 경우 거주국 감독기관에
+          민원을 제기할 수 있습니다.
+        </p>
+      </section>
+
+      <section id="ccpa">
+        <h2>10. CCPA/CPRA (캘리포니아 이용자) 고지</h2>
+        <p>
+          캘리포니아주 거주자는 캘리포니아 소비자 개인정보 보호법(CCPA) 및 개정법(CPRA)에 따라
+          다음 권리를 가집니다.
+        </p>
+        <ul>
+          <li>수집된 개인정보의 항목, 출처, 이용 목적, 공유 대상에 대한 <strong>고지 요구권</strong></li>
+          <li>수집된 개인정보의 <strong>삭제 요구권</strong></li>
+          <li>개인정보 <strong>판매 및 공유 거부권</strong> (Do Not Sell or Share My Personal Information)</li>
+          <li>민감 개인정보 이용 제한 요구권</li>
+          <li>권리 행사에 따른 <strong>차별 금지</strong></li>
+        </ul>
+        <p>
+          본 사이트는 개인정보를 금전적 대가를 받고 판매하지 않습니다. 다만 맞춤형 광고를 위한
+          제3자 쿠키 사용은 CPRA상 “공유”에 해당할 수 있으며, 이용자는 위 문의처로 요청하거나
+          브라우저의 Global Privacy Control(GPC) 신호를 통해 거부할 수 있습니다.
+        </p>
+      </section>
+
+      <section id="korea">
+        <h2>11. 국내 이용자 안내 (개인정보보호법)</h2>
+        <p>
+          대한민국 「개인정보 보호법」에 따라 이용자는 개인정보 열람, 정정·삭제, 처리정지를 요구할
+          수 있습니다. 요청은 아래 개인정보 보호책임자에게 서면, 이메일로 하실 수 있으며 지체 없이
+          조치하겠습니다.
+        </p>
+        <div class="callout">
+          <p><strong>개인정보 보호책임자</strong></p>
+          <p>성명: {SITE.name} 운영자</p>
+          <p>이메일: <a href="mailto:privacy@techflow-guide.com">privacy@techflow-guide.com</a></p>
+        </div>
+        <p>
+          권익 침해에 대한 상담이 필요한 경우 개인정보분쟁조정위원회(1833-6972),
+          개인정보침해신고센터(118), 대검찰청 사이버수사과(1301), 경찰청 사이버수사국(182)에
+          문의하실 수 있습니다.
+        </p>
+      </section>
+
+      <section id="children">
+        <h2>12. 아동의 개인정보</h2>
+        <p>
+          본 사이트는 만 14세 미만 아동(미국 COPPA 기준 만 13세 미만)을 대상으로 하지 않으며,
+          아동의 개인정보를 고의로 수집하지 않습니다. 아동이 정보를 제공한 사실을 인지한 경우
+          즉시 해당 정보를 삭제합니다. 보호자께서 이러한 사실을 발견하시면 즉시 연락해 주시기
+          바랍니다.
+        </p>
+      </section>
+
+      <section id="security">
+        <h2>13. 안전성 확보 조치</h2>
+        <ul>
+          <li>전 구간 HTTPS(TLS) 암호화 전송</li>
+          <li>정적 사이트 구조로 데이터베이스를 운영하지 않아 저장 위험 최소화</li>
+          <li>관리 계정 접근에 대한 2단계 인증 적용</li>
+          <li>수집 항목 최소화 원칙 적용</li>
+        </ul>
+      </section>
+
+      <section id="thirdparty">
+        <h2>14. 외부 링크</h2>
+        <p>
+          본 사이트에는 외부 웹사이트로 연결되는 링크가 포함될 수 있습니다. 본 방침은 외부
+          사이트에는 적용되지 않으며, 해당 사이트의 개인정보 처리에 대해 본 사이트는 책임지지
+          않습니다. 링크를 통해 이동한 사이트의 개인정보처리방침을 별도로 확인해 주시기 바랍니다.
+        </p>
+      </section>
+
+      <section id="changes">
+        <h2>15. 방침 변경</h2>
+        <p>
+          본 방침은 법령 또는 서비스 변경에 따라 개정될 수 있습니다. 중요한 변경이 있는 경우 시행
+          7일 전부터 본 페이지에 공지하며, 개정일을 상단에 표기합니다. 변경 이후 사이트를 계속
+          이용하는 경우 변경 사항에 동의한 것으로 간주됩니다.
+        </p>
+      </section>
+
+      <section id="contact">
+        <h2>16. 문의처</h2>
+        <p>
+          본 방침에 관한 문의나 권리 행사 요청은 아래로 보내 주세요. 영업일 기준 3일 이내에
+          접수 확인을 회신하며, 법정 기한 내에 처리 결과를 안내합니다.
+        </p>
+        <div class="callout">
+          <p><strong>{SITE.name}</strong></p>
+          <p>일반 문의: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+          <p>
+            개인정보 관련: <a href="mailto:privacy@techflow-guide.com">privacy@techflow-guide.com</a>
+          </p>
+          <p>웹사이트: <a href={SITE.url}>{SITE.url}</a></p>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .page {
+    max-width: 50rem;
+    padding-block: 3rem 4rem;
+  }
+
+  .page__eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .page__head h1 {
+    margin-top: 0.5rem;
+    font-size: clamp(1.9rem, 4.5vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .page__meta {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-subtle);
+  }
+
+  .toc {
+    margin-top: 2rem;
+    padding: 1.25rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    background-color: var(--surface-muted);
+  }
+
+  .toc h2 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: 0.75rem;
+  }
+
+  .toc ol {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+  }
+
+  .toc a {
+    color: var(--text-muted);
+  }
+
+  .toc a:hover {
+    color: var(--accent);
+  }
+
+  .legal {
+    margin-top: 2.5rem;
+  }
+
+  .legal section {
+    scroll-margin-top: 6rem;
+  }
+
+  .legal section + section {
+    margin-top: 2.5rem;
+  }
+
+  .legal h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+
+  .legal h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.6rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .legal p {
+    line-height: 1.85;
+    color: var(--text-muted);
+  }
+
+  .legal p + p,
+  .legal ul + p,
+  .legal p + ul {
+    margin-top: 1rem;
+  }
+
+  .legal ul {
+    display: grid;
+    gap: 0.5rem;
+    list-style: disc;
+    padding-left: 1.25rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+
+  .legal li::marker {
+    color: var(--accent);
+  }
+
+  .legal strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .legal a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    word-break: break-word;
+  }
+
+  .table-wrap {
+    margin-top: 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    min-width: 32rem;
+  }
+
+  th,
+  td {
+    padding: 0.7rem 0.9rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  th {
+    background-color: var(--surface-muted);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .callout {
+    margin-top: 1rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 0.75rem 0.75rem 0;
+    background-color: var(--surface-muted);
+    font-size: 0.9rem;
+  }
+
+  .callout p + p {
+    margin-top: 0.3rem;
+  }
+</style>

@@ -1,0 +1,219 @@
+---
+import type { Post } from '../utils/posts';
+import { formatDate, isoDate, postUrl, readingTime } from '../utils/posts';
+import { categoryByName } from '../consts';
+
+interface Props {
+  post: Post;
+  /** `featured` renders a taller cover card, `compact` a single-line row. */
+  variant?: 'default' | 'featured' | 'compact';
+  headingLevel?: 'h2' | 'h3';
+  loading?: 'eager' | 'lazy';
+}
+
+const { post, variant = 'default', headingLevel = 'h2', loading = 'lazy' } = Astro.props;
+const { title, description, pubDate, category, tags, image } = post.data;
+const meta = categoryByName(category);
+const minutes = readingTime(post.body);
+const href = postUrl(post);
+const Heading = headingLevel;
+---
+
+<article class:list={['card', `card--${variant}`]}>
+  {
+    variant !== 'compact' && (
+      <a class="card__media" href={href} tabindex="-1" aria-hidden="true">
+        {image ? (
+          <img src={image.src} alt="" loading={loading} decoding="async" width="800" height="450" />
+        ) : (
+          <span class="card__media-fallback" data-category={meta?.slug}>
+            <span class="card__media-icon">{meta?.icon ?? '📄'}</span>
+            <span class="card__media-label">{category}</span>
+          </span>
+        )}
+      </a>
+    )
+  }
+
+  <div class="card__body">
+    <div class="card__meta">
+      <span class="card__category">{meta?.icon} {category}</span>
+      <time datetime={isoDate(pubDate)}>{formatDate(pubDate)}</time>
+      <span class="card__dot" aria-hidden="true">·</span>
+      <span>{minutes}분 읽기</span>
+    </div>
+
+    <Heading class="card__title">
+      <a href={href}>{title}</a>
+    </Heading>
+
+    <p class="card__desc">{description}</p>
+
+    {
+      variant !== 'compact' && tags.length > 0 && (
+        <ul class="card__tags">
+          {tags.slice(0, 3).map((tag) => (
+            <li>#{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    height: 100%;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  }
+
+  .card--compact {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 1rem;
+    border-radius: 0.85rem;
+    box-shadow: none;
+  }
+
+  .card--compact:hover {
+    transform: none;
+  }
+
+  .card__media {
+    display: block;
+    aspect-ratio: 16 / 9;
+    background-color: var(--surface-muted);
+    overflow: hidden;
+  }
+
+  .card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+  }
+
+  .card:hover .card__media img {
+    transform: scale(1.03);
+  }
+
+  .card__media-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #eef2ff, #ede9fe 60%, #ecfeff);
+    color: #4338ca;
+  }
+
+  :global([data-theme='dark']) .card__media-fallback {
+    background: linear-gradient(135deg, #1e1b4b, #172554 60%, #083344);
+    color: #c7d2fe;
+  }
+
+  .card__media-icon {
+    font-size: 1.75rem;
+  }
+
+  .card__media-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 1.15rem 1.25rem 1.35rem;
+    flex: 1;
+  }
+
+  .card--compact .card__body {
+    padding: 0.9rem 0.25rem;
+  }
+
+  .card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-subtle);
+  }
+
+  .card__category {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .card__dot {
+    opacity: 0.6;
+  }
+
+  .card__title {
+    font-size: 1.075rem;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: -0.015em;
+  }
+
+  .card--featured .card__title {
+    font-size: 1.3rem;
+  }
+
+  .card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .card {
+    position: relative;
+  }
+
+  .card__desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 0.6rem;
+    font-size: 0.72rem;
+    color: var(--text-subtle);
+  }
+
+  .card__tags li {
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background-color: var(--surface-muted);
+    border: 1px solid var(--border);
+  }
+</style>

@@ -1,0 +1,15 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Google AdSense crawler needs access to render ad-serving pages.
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+Disallow: /404
+Disallow: /_astro/
+
+Sitemap: https://techflow-guide.vercel.app/sitemap-index.xml

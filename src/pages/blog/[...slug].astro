@@ -1,0 +1,388 @@
+---
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../layouts/Layout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import AuthorCard from '../../components/AuthorCard.astro';
+import TableOfContents from '../../components/TableOfContents.astro';
+import PostCard from '../../components/PostCard.astro';
+import { categoryByName, SITE } from '../../consts';
+import {
+  formatDate,
+  getPublishedPosts,
+  isoDate,
+  postUrl,
+  readingTime,
+  relatedPosts,
+} from '../../utils/posts';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post, posts },
+  }));
+}) satisfies GetStaticPaths;
+
+const { post, posts } = Astro.props;
+const { Content, headings } = await render(post);
+
+const { title, description, pubDate, updatedDate, category, tags, image, author } = post.data;
+const meta = categoryByName(category);
+const minutes = readingTime(post.body);
+const related = relatedPosts(post, posts);
+const shareUrl = new URL(postUrl(post), Astro.site ?? SITE.url).href;
+---
+
+<Layout
+  title={title}
+  description={description}
+  type="article"
+  image={image?.src}
+  publishedTime={pubDate}
+  modifiedTime={updatedDate}
+  author={author}
+  category={category}
+  tags={[...tags]}
+  readingMinutes={minutes}
+  breadcrumbs={[
+    { name: '전체 글', url: '/blog' },
+    { name: title, url: postUrl(post) },
+  ]}
+>
+  <div class="container-page post-shell">
+    <article class="post">
+      <nav class="breadcrumb" aria-label="현재 위치">
+        <ol>
+          <li><a href="/">홈</a></li>
+          <li aria-hidden="true">/</li>
+          <li><a href="/blog">전체 글</a></li>
+          <li aria-hidden="true">/</li>
+          <li><a href={`/blog/?category=${meta?.slug ?? ''}`}>{category}</a></li>
+        </ol>
+      </nav>
+
+      <header class="post__head">
+        <a class="post__category" href={`/blog/?category=${meta?.slug ?? ''}`}>
+          <span aria-hidden="true">{meta?.icon}</span> {category}
+        </a>
+        <h1 class="post__title">{title}</h1>
+        <p class="post__lead">{description}</p>
+
+        <div class="post__meta">
+          <span class="post__author">{author}</span>
+          <span aria-hidden="true">·</span>
+          <time datetime={isoDate(pubDate)}>{formatDate(pubDate)} 발행</time>
+          {
+            updatedDate && (
+              <>
+                <span aria-hidden="true">·</span>
+                <time datetime={isoDate(updatedDate)}>{formatDate(updatedDate)} 수정</time>
+              </>
+            )
+          }
+          <span aria-hidden="true">·</span>
+          <span>약 {minutes}분 읽기</span>
+        </div>
+      </header>
+
+      {
+        image && (
+          <figure class="post__cover">
+            <img src={image.src} alt={image.alt} width="1200" height="675" decoding="async" />
+            {image.alt && <figcaption>{image.alt}</figcaption>}
+          </figure>
+        )
+      }
+
+      <div class="post__toc-mobile">
+        <TableOfContents headings={headings} variant="mobile" />
+      </div>
+
+      <AdSlot variant="in-article" slotId="0000000001" label="광고" class="post__ad" />
+
+      <div class="prose-article">
+        <Content />
+      </div>
+
+      <AdSlot variant="in-article" slotId="0000000002" label="광고" class="post__ad" />
+
+      {
+        tags.length > 0 && (
+          <ul class="post__tags" aria-label="태그">
+            {tags.map((tag) => (
+              <li>#{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+
+      <div class="post__share">
+        <span>이 글이 도움이 됐다면 공유해 주세요.</span>
+        <div class="post__share-links">
+          <a
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(shareUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer">X (Twitter)</a
+          >
+          <a
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer">Facebook</a
+          >
+          <button type="button" id="copy-link" data-url={shareUrl}>링크 복사</button>
+        </div>
+      </div>
+
+      <AuthorCard name={author} />
+
+      {
+        related.length > 0 && (
+          <section class="related" aria-labelledby="related-heading">
+            <h2 id="related-heading">함께 읽으면 좋은 글</h2>
+            <div class="related__grid">
+              {related.map((item) => (
+                <PostCard post={item} headingLevel="h3" />
+              ))}
+            </div>
+          </section>
+        )
+      }
+    </article>
+
+    <aside class="post__rail">
+      <div class="post__rail-inner">
+        <div class="post__toc-desktop">
+          <TableOfContents headings={headings} variant="desktop" />
+        </div>
+        <AdSlot variant="sidebar" slotId="0000000003" label="광고" />
+      </div>
+    </aside>
+  </div>
+</Layout>
+
+<style>
+  .post-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+    padding-block: 2.5rem 4rem;
+  }
+
+  .breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-subtle);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--accent);
+  }
+
+  .post__head {
+    margin-top: 1.25rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .post__category {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background-color: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .post__title {
+    margin-top: 1rem;
+    font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.32;
+    letter-spacing: -0.032em;
+  }
+
+  .post__lead {
+    margin-top: 1rem;
+    font-size: 1.02rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+  }
+
+  .post__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 1.25rem;
+    font-size: 0.82rem;
+    color: var(--text-subtle);
+  }
+
+  .post__author {
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .post__cover {
+    margin-top: 1.75rem;
+  }
+
+  .post__cover img {
+    width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+  }
+
+  .post__cover figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.8rem;
+    color: var(--text-subtle);
+    text-align: center;
+  }
+
+  .post__toc-mobile {
+    margin-top: 1.75rem;
+  }
+
+  .post__toc-desktop {
+    display: none;
+  }
+
+  .post__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+  }
+
+  .post__tags li {
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background-color: var(--surface-muted);
+    color: var(--text-muted);
+  }
+
+  .post__share {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    margin-top: 2rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+  }
+
+  .post__share-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .post__share-links a,
+  .post__share-links button {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 0.55rem;
+    background-color: var(--surface-muted);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .post__share-links a:hover,
+  .post__share-links button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .related {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .related h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 1.25rem;
+  }
+
+  .related__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.15rem;
+  }
+
+  .post__rail {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .related__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .post-shell {
+      grid-template-columns: minmax(0, 1fr) 19rem;
+      align-items: start;
+    }
+    .post {
+      max-width: 46rem;
+    }
+    .post__toc-mobile {
+      display: none;
+    }
+    .post__toc-desktop {
+      display: block;
+    }
+    .post__rail {
+      display: block;
+      position: sticky;
+      top: 5.75rem;
+    }
+    .post__rail-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .related__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<script>
+  const copyButton = document.getElementById('copy-link') as HTMLButtonElement | null;
+
+  copyButton?.addEventListener('click', async () => {
+    const url = copyButton.dataset.url ?? window.location.href;
+    const original = copyButton.textContent;
+    try {
+      await navigator.clipboard.writeText(url);
+      copyButton.textContent = '복사됨!';
+    } catch {
+      copyButton.textContent = '복사 실패';
+    }
+    window.setTimeout(() => {
+      copyButton.textContent = original;
+    }, 1800);
+  });
+</script>
