@@ -1,7 +1,7 @@
 ---
 title: "집중 앱 4종 4주 비교: 차단 앱이 실제로 효과 있는 사람은 따로 있다"
 description: "Freedom, Cold Turkey, One Sec, macOS 집중 모드를 각 1주씩 쓰며 화면 사용 시간을 측정했습니다. 차단 강도와 실제 효과가 비례하지 않는 이유."
-pubDate: 2026-06-11
+pubDate: "2026-07-14T09:00:00.000Z"
 category: "Productivity"
 tags: ["집중", "앱차단", "스크린타임", "습관"]
 author: "테크플로우 편집팀"

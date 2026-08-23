@@ -1,7 +1,7 @@
 ---
 title: "Raycast vs Alfred, 6주씩 써보고 정리한 실사용 비교"
 description: "맥 런처 양대 산맥을 각각 6주씩 주력으로 쓰며 비교했습니다. 속도, 확장성, 팀 사용, 비용까지 실제 작업 기준으로 정리한 선택 가이드."
-pubDate: 2026-07-28
+pubDate: "2026-06-02T09:00:00.000Z"
 category: "Smart Tools"
 tags: ["Raycast", "Alfred", "런처", "macOS"]
 author: "테크플로우 편집팀"

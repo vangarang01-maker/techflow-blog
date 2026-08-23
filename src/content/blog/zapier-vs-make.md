@@ -1,7 +1,7 @@
 ---
 title: "Zapier vs Make, 실제 업무 자동화 6개로 비교한 선택 가이드"
 description: "동일한 자동화 6개를 Zapier와 Make에 각각 구현하며 비교했습니다. 가격 구조, 분기 처리, 오류 대응, 학습 곡선 차이를 정리했습니다."
-pubDate: "2026-08-23T11:14:19.196Z"
+pubDate: "2026-07-21T09:00:00.000Z"
 category: "Workflow"
 tags: ["Zapier", "Make", "자동화", "노코드"]
 author: "테크플로우 편집팀"
