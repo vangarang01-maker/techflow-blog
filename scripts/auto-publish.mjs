@@ -2831,7 +2831,7 @@ async function generateWithGemini(topic) {
         headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: `${GEMINI_INSTRUCTIONS}\n\n개요:\n${outline}` }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 3500 },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
         }),
         signal: AbortSignal.timeout(90_000),
       });
@@ -2842,16 +2842,26 @@ async function generateWithGemini(topic) {
       }
 
       const payload = await response.json();
-      const text = (payload?.candidates?.[0]?.content?.parts ?? [])
+      const candidate = payload?.candidates?.[0];
+      const finishReason = candidate?.finishReason;
+
+      if (finishReason && finishReason !== 'STOP') {
+        console.warn(`[gemini] ${model} incomplete finishReason (${finishReason}) — trying next model`);
+        continue;
+      }
+
+      const text = (candidate?.content?.parts ?? [])
         .map((part) => part.text ?? '')
         .join('')
         .trim();
 
-      const cleaned = text
-        .replace(/^```(?:markdown|md)?\s*\n?/i, '')
-        .replace(/\n?```\s*$/i, '')
-        .replace(/^---[\s\S]*?---\s*/, '')
-        .trim();
+      const cleaned = normalizeMarkdown(
+        text
+          .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+          .replace(/\n?```\s*$/i, '')
+          .replace(/^---[\s\S]*?---\s*/, '')
+          .trim()
+      );
 
       if (cleaned.length < MIN_CHARS) {
         console.warn(`[gemini] ${model} draft too short (${cleaned.length} chars) — trying next model`);
@@ -2867,6 +2877,14 @@ async function generateWithGemini(topic) {
 
   console.warn(`[gemini] all candidate models failed — falling back to template`);
   return null;
+}
+
+function normalizeMarkdown(text) {
+  return text
+    // Fix **"text"** or **“text”** to “**text**” (so quotes don't break CommonMark bold parsing)
+    .replace(/\*\*["“](.*?)[”"]\*\*/g, '“**$1**”')
+    .replace(/\*\*['‘](.*?)[’']\*\*/g, '‘**$1**’')
+    .replace(/\*\*\s*\*\*/g, '');
 }
 
 function renderFrontmatter(topic, pubDate) {
