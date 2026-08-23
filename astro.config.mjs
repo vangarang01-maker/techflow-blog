@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://techflow-guide.vercel.app',
+  site: 'https://techflow-blog-choi-f69b.vercel.app',
   trailingSlash: 'ignore',
   integrations: [
     sitemap({

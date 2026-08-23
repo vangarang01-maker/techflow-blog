@@ -7,7 +7,7 @@ export const SITE = {
   tagline: '스마트한 일상과 디지털 생산성 가이드',
   description:
     '맥과 PC, 스마트 도구, 업무 자동화까지. 직접 써보고 검증한 디지털 생산성 노하우를 실전 중심으로 정리합니다.',
-  url: 'https://techflow-guide.vercel.app',
+  url: 'https://techflow-blog-choi-f69b.vercel.app',
   locale: 'ko_KR',
   lang: 'ko',
   email: 'contact@techflow-guide.com',
