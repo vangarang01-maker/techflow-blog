@@ -89,24 +89,16 @@ const { slug, title } = Astro.props;
     const STORAGE_KEY_LOCAL_VIEWS = `tf_views_${slug}`;
     const STORAGE_KEY_LOCAL_LIKES = `tf_likes_${slug}`;
 
-    function getSeed(str: string, min: number, max: number) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      const rand = Math.abs(hash % 1000) / 1000;
-      return Math.floor(min + rand * (max - min));
-    }
-
-    const baseViews = getSeed(slug + '_v', 420, 1850);
-    const baseLikes = getSeed(slug + '_l', 32, 120);
-
+    // Pure 100% Actual Counter (No fake numbers)
     const localViews = parseInt(localStorage.getItem(STORAGE_KEY_LOCAL_VIEWS) || '0', 10);
-    const currentViews = baseViews + localViews + 1;
-    localStorage.setItem(STORAGE_KEY_LOCAL_VIEWS, (localViews + 1).toString());
+    const currentViews = localViews + 1;
+    localStorage.setItem(STORAGE_KEY_LOCAL_VIEWS, currentViews.toString());
     if (viewCount) viewCount.textContent = `조회 ${currentViews.toLocaleString()}회`;
 
+    // Initialize Likes (Pure actual clicks)
     let isLiked = localStorage.getItem(STORAGE_KEY_LIKED) === 'true';
     let localLikes = parseInt(localStorage.getItem(STORAGE_KEY_LOCAL_LIKES) || '0', 10);
-    let totalLikes = baseLikes + localLikes + (isLiked ? 1 : 0);
+    let totalLikes = localLikes + (isLiked ? 1 : 0);
 
     function updateLikeUI() {
       if (likeIcon) likeIcon.textContent = isLiked ? '❤️' : '🤍';
