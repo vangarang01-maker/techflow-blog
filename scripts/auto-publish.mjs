@@ -22,6 +22,7 @@ const BLOG_DIR = path.join(ROOT, 'src', 'content', 'blog');
 
 const AUTHOR = '테크플로우 편집팀';
 /** Must stay in sync with `CATEGORIES` in src/consts.ts (content schema enum). */
+const CATEGORIES = ['Productivity', 'Mac & PC', 'Smart Tools', 'Workflow'];
 const MIN_CHARS = 2500;
 /** 최신 Gemini Flash 플래그십 모델 (환경변수로 모델명 지정 가능) */
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
