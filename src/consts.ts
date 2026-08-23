@@ -29,8 +29,8 @@ export const AUTHOR = {
  * inert placeholder, which keeps the site policy-safe before review.
  */
 export const ADSENSE = {
-  client: '',
-  enabled: false,
+  client: 'ca-pub-7683326491314783',
+  enabled: true,
 } as const;
 
 export const CATEGORIES = [
