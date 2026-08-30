@@ -204,17 +204,32 @@ const adsenseEnabled = ADSENSE.enabled && adsenseClient !== '';
       href={new URL('rss.xml', `${siteUrl}/`).href}
     />
 
-    <!-- Google AdSense: site verification + ad serving.
-         Both stay inert until a real ca-pub client id is set in src/consts.ts. -->
+    <!-- Google AdSense: site verification + optimized async serving -->
     {adsenseEnabled && <meta name="google-adsense-account" content={adsenseClient} />}
     {
       adsenseEnabled && (
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
-          crossorigin="anonymous"
-          is:inline
-        />
+        <script is:inline define:vars={{ adsenseClient }}>
+          (() => {
+            let loaded = false;
+            function loadAdSense() {
+              if (loaded) return;
+              loaded = true;
+              const s = document.createElement('script');
+              s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`;
+              s.async = true;
+              s.crossOrigin = 'anonymous';
+              document.head.appendChild(s);
+            }
+            ['scroll', 'touchstart', 'mousemove', 'keydown', 'click'].forEach((e) => {
+              window.addEventListener(e, loadAdSense, { once: true, passive: true });
+            });
+            if ('requestIdleCallback' in window) {
+              window.requestIdleCallback(loadAdSense, { timeout: 3500 });
+            } else {
+              setTimeout(loadAdSense, 3000);
+            }
+          })();
+        </script>
       )
     }
 
