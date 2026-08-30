@@ -2,10 +2,8 @@ name: Auto Publish Article
 
 on:
   schedule:
-    # 09:00 / 14:00 / 20:00 KST (UTC+9)
+    # 09:00 KST (UTC+9) 매일 1회
     - cron: '0 0 * * *'
-    - cron: '0 5 * * *'
-    - cron: '0 11 * * *'
   workflow_dispatch:
 
 permissions:

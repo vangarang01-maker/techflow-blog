@@ -2662,7 +2662,7 @@ async function readExisting() {
 }
 
 /** Picks the first curated topic that has not been published yet. */
-function selectTopic({ slugs, titles }, forcedSlug) {
+async function selectTopic({ slugs, titles }, forcedSlug) {
   if (forcedSlug) {
     const forced = TOPICS.find((topic) => topic.slug === forcedSlug);
     if (!forced) throw new Error(`Unknown topic slug: ${forcedSlug}`);
@@ -2680,11 +2680,17 @@ function selectTopic({ slugs, titles }, forcedSlug) {
     return { topic: unwritten[dayIndex % unwritten.length], fresh: false };
   }
 
-  return { topic: mintFreshTopic({ slugs, titles }), fresh: true };
+  const freshTopic = await mintFreshTopic({ slugs, titles });
+  return { topic: freshTopic, fresh: true };
 }
 
-/** Generates a new, non-duplicate topic once the curated bank is exhausted. */
-function mintFreshTopic({ slugs, titles }) {
+/** Generates a new, 100% unique topic once the curated bank is exhausted via Gemini. */
+async function mintFreshTopic({ slugs, titles }) {
+  const dynamicTopic = await inventFreshTopicWithGemini({ slugs, titles });
+  if (dynamicTopic) {
+    return dynamicTopic;
+  }
+
   for (const angle of ANGLES) {
     for (const base of TOPICS) {
       const slug = `${base.slug}-${angle.key}`;
@@ -2700,15 +2706,84 @@ function mintFreshTopic({ slugs, titles }) {
     }
   }
 
-  // Extremely unlikely fallback: suffix with a counter until unique.
+  // Safe fallback without duplicate version suffixes
   const base = TOPICS[Math.floor(Math.random() * TOPICS.length)];
-  let n = 2;
-  while (slugs.has(`${base.slug}-v${n}`)) n += 1;
+  const timestamp = Date.now().toString().slice(-4);
   return {
     ...base,
-    slug: `${base.slug}-v${n}`,
-    title: `${base.title} (${n}차 업데이트)`,
+    slug: `${base.slug}-${timestamp}`,
+    title: `${base.title} — 실전 심층 가이드`,
   };
+}
+
+async function inventFreshTopicWithGemini({ slugs, titles }) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  const existingList = Array.from(slugs).slice(0, 30);
+  const prompt = `당신은 IT·생산성 전문 블로그 '테크플로우(TechFlow)'의 수석 테크 에디터입니다.
+현재 블로그에 이미 작성된 글 목록은 다음과 같습니다:
+${existingList.map((s, idx) => `${idx + 1}. ${s}`).join('\n')}
+
+위 기존 글들과 절대 겹치지 않는, 실무자들의 검색 수요가 매우 높은 **100% 새로운 IT / Mac & PC / 생산성 / AI 툴 / 워크플로우 전문 주제 1개**를 기획하세요.
+제목에 절대 '(2차 업데이트)'나 '(업데이트)' 같은 접미사를 붙이지 마세요.
+
+반드시 다음 JSON 형식으로만 순수 JSON 객체(마크다운 코드블록 없이)를 출력하세요:
+{
+  "slug": "영문-케밥-케이스-슬러그",
+  "title": "구체적인 문제와 해결책이 담긴 전문적인 글 제목",
+  "category": "Productivity 또는 Mac & PC 또는 Smart Tools 또는 Workflow 중 택1",
+  "tags": ["태그1", "태그2", "태그3", "태그4"],
+  "description": "글 전체 핵심 내용을 2줄로 요약한 설명",
+  "hook": "독자의 호기심을 자극하고 실전 업무 비효율 상황을 제시하는 강렬한 도입부 훅 2줄",
+  "why": ["이유 1", "이유 2", "이유 3"],
+  "prep": ["준비물 1", "준비물 2", "준비물 3"],
+  "steps": [
+    { "h": "1단계 소주제 제목", "b": "1단계 상세 설명", "tip": "1단계 꿀팁" },
+    { "h": "2단계 소주제 제목", "b": "2단계 상세 설명", "tip": "2단계 꿀팁" },
+    { "h": "3단계 소주제 제목", "b": "3단계 상세 설명", "tip": "3단계 꿀팁" }
+  ],
+  "table": {
+    "title": "비교 표 제목",
+    "headers": ["항목", "기존 방식", "개선 방식"],
+    "rows": [["속도", "느림", "빠름"], ["비용", "유료", "무료"]]
+  },
+  "tips": ["실전 팁 1", "실전 팁 2", "실전 팁 3"],
+  "faq": [
+    { "q": "자주 묻는 질문 1", "a": "답변 1" },
+    { "q": "자주 묻는 질문 2", "a": "답변 2" }
+  ],
+  "closing": "글 마무리 요약 문장"
+}`;
+
+  const candidateModels = Array.from(
+    new Set([GEMINI_MODEL, 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash'])
+  );
+
+  for (const model of candidateModels) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+        }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!response.ok) continue;
+      const data = await response.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) continue;
+      const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      if (parsed.slug && parsed.title && parsed.category) return parsed;
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }
 
 /* -------------------------------------------------------------- rendering */
@@ -2774,22 +2849,127 @@ function renderBody(topic) {
   return out.join('\n').trim();
 }
 
-const GEMINI_INSTRUCTIONS = `당신은 한국어 IT·생산성 블로그 '테크플로우'의 에디터입니다.
-아래 개요를 바탕으로 마크다운 본문을 작성하세요.
+/* -------------------------------------------------------------- Writing Patterns (10 Archetypes) */
+
+const WRITING_PATTERNS = [
+  {
+    id: 'pattern_01_team_sos',
+    name: '동료/팀원 업무 비효율 SOS 구조형',
+    categoryMatch: ['Productivity', 'Workflow'],
+    desc: '팀원의 노가다 SOS ➔ 10분 만에 자동화/단축키 세팅으로 매일 1시간 퇴근 앞당긴 실전 세팅',
+    instruction: `[도입부 패턴: 동료/팀원 업무 비효율 SOS 구조형]
+- 지난주 동료 기획자/개발자/마케터가 매일 수작업 노가다로 고통받으며 야근하다가 SOS를 요청해 온 실제 상황으로 생생하게 시작하세요.
+- 10년 차 파워유저/테크 에디터의 시각에서 "10분 만에 세팅해 준 단축키/자동화로 매일 1시간씩 퇴근을 앞당겨준 핵심 세팅법"을 독자에게도 그대로 전수하는 톤으로 전개하세요.`,
+  },
+  {
+    id: 'pattern_02_post_mortem_hands_on',
+    name: '삽질 끝에 건진 실전 프로덕션 세팅형',
+    categoryMatch: ['Mac & PC', 'Workflow'],
+    desc: '수많은 튜토리얼 에러 삽질 ➔ 꼬박 사흘 날리고 찾은 딱 한 줄 해결책과 실전 세팅',
+    instruction: `[도입부 패턴: 삽질 끝에 건진 실전 세팅형]
+- 인터넷 블로그 튜토리얼 10개를 그대로 따라 하다가 온갖 에러와 설정 충돌로 며칠간 삽질했던 생생한 경험담으로 시작하세요.
+- 온갖 시행착오 끝에 찾아낸 '군더더기 없는 단 한 줄의 핵심 해결책'과 실제 프로덕션에서 무중단으로 돌아가는 최소 세팅을 깔끔하게 전수하세요.`,
+  },
+  {
+    id: 'pattern_03_saas_roi_analyst',
+    name: '유료 SaaS 툴 결제 씹고 뜯은 가성비 ROI 분석형',
+    categoryMatch: ['Smart Tools', 'Productivity'],
+    desc: '매달 나가는 유료 구독료 분석 ➔ 3개월간 팀 결제 실사용 후 뽑아낸 손익분기점과 무료 대체재',
+    instruction: `[도입부 패턴: 유료 SaaS 툴 가성비 ROI 분석형]
+- "매달 나가는 구독료만 수십만 원인데, 과연 진짜 돈값을 할까?"라는 도발적 질문으로 시작하세요.
+- 실제로 수개월간 직접 결제해 실무에 굴려보며 뽑아낸 기능별 ROI(투자 대비 효과)와 무료 대체재 비교 데이터를 엑셀처럼 명쾌하게 분석해 드리겠다는 톤으로 시작하세요.`,
+  },
+  {
+    id: 'pattern_04_workflow_transformation',
+    name: '업무 속도 10배 Before & After 변혁형',
+    categoryMatch: ['Workflow', 'Productivity'],
+    desc: '기존 45분 걸리던 루틴 ➔ 3분으로 단축시킨 핵심 3단계 연결 규칙',
+    instruction: `[도입부 패턴: 업무 속도 10배 Before & After 변혁형]
+- 기존에 파일 찾고 자료 정리하느라 매일 45분씩 허비하던 비효율적인 과거 루틴을 솔직하게 고백하며 시작하세요.
+- 오늘 소개할 3가지 연결 규칙과 자동화 도구를 도입한 뒤 작업 시간이 단 3분으로 단축된 체감 데이터와 실전 워크플로우를 단계별로 공개하세요.`,
+  },
+  {
+    id: 'pattern_05_5min_quick_win',
+    name: '5분 완성 초보자 무설치 꿀팁형',
+    categoryMatch: ['Mac & PC', 'Smart Tools'],
+    desc: '복잡한 코딩/설치 없이 기본 기능과 단축키 하나로 생산성 2배 올리는 꿀팁',
+    instruction: `[도입부 패턴: 5분 완성 무설치 꿀팁형]
+- 무거운 유료 프로그램을 깔거나 복잡한 코딩을 배울 필요 없이, 지금 당장 OS 기본 기능과 브라우저 단축키 하나로 해결할 수 있음을 강조하며 시작하세요.
+- 초보자도 5분 안에 바로 따라 할 수 있는 가장 쉽고 확실한 3단계 실행 가이드를 짚어주세요.`,
+  },
+  {
+    id: 'pattern_06_tech_mythbusters',
+    name: 'IT 인터넷 속설 vs 실측 벤치마크 팩트 검증형',
+    categoryMatch: ['Mac & PC', 'Smart Tools'],
+    desc: '유튜브/커뮤니티 낭설 제시 ➔ 벤치마크 실측 데이터와 컴퓨터 공학 원리로 팩트 검증',
+    instruction: `[도입부 패턴: IT 속설 vs 실측 팩트 검증형]
+- IT 커뮤니티나 유튜브 댓글에서 끝없이 갑론을박이 벌어지는 유명한 논쟁(예: SSD 용량 속도 저하설, RAM 16GB 한계론 등)을 화두로 던지며 시작하세요.
+- 벤치마크 계측 도구와 실제 시스템 로그 데이터를 바탕으로 낭설을 시원하게 반박하고, 진짜 팩트와 최적화 가이드를 정리하세요.`,
+  },
+  {
+    id: 'pattern_07_hidden_gems',
+    name: '파워유저의 숨겨진 히든 기능 발굴형',
+    categoryMatch: ['Smart Tools', 'Mac & PC'],
+    desc: '매일 쓰는 앱인데 90%가 모르는 치명적인 숨은 기능 3가지',
+    instruction: `[도입부 패턴: 숨겨진 히든 기능 발굴형]
+- "매일 수시간씩 켜두는 이 앱, 하지만 90%의 사용자가 이 치명적인 기능의 존재조차 모르고 있습니다"라는 흥미진진한 훅으로 시작하세요.
+- 이 숨은 설정을 켜는 순간 작업 생산성과 쾌적함이 완전히 달라지는 실전 히든 팁들을 공개하세요.`,
+  },
+  {
+    id: 'pattern_08_migration_shield',
+    name: '실패율 0% 툴 마이그레이션 이관 가이드형',
+    categoryMatch: ['Workflow', 'Productivity'],
+    desc: '툴 이관하다 포기한 경험 ➔ 데이터 손실 없이 100% 안전하게 넘어가는 단계별 가이드',
+    instruction: `[도입부 패턴: 실패 없는 툴 이관 가이드형]
+- 다른 플랫폼이나 OS로 넘어가려다 단축키 이질감과 데이터 유실로 중도 포기했던 흔한 실패 경험담으로 공감을 이끌어내며 시작하세요.
+- 데이터 한 줄도 깨뜨리지 않고 완벽하게 세팅을 옮기는 3단계 무손실 이관 전략을 든든하게 제시하세요.`,
+  },
+  {
+    id: 'pattern_09_version_deep_dive',
+    name: '새 업데이트 실무 체감 심층 리뷰형',
+    categoryMatch: ['Smart Tools', 'Mac & PC'],
+    desc: '화려한 릴리즈 노트 뒤에 숨은 실무자가 매일 쓸 진짜 핵심 기능 2가지',
+    instruction: `[도입부 패턴: 새 업데이트 실무 심층 리뷰형]
+- 제조사의 거창한 릴리즈 노트와 마케팅 문구를 걷어내고, "실제 매일 일하는 실무자에게 진짜 쓸모 있는 변화는 딱 이것뿐이었습니다"라는 솔직한 관점으로 시작하세요.
+- 일상 업무에서 체감되는 장단점과 필수 활성화 옵션을 명확히 정리하세요.`,
+  },
+  {
+    id: 'pattern_10_digital_declutter',
+    name: '10분 완성 미니멀 디지털 정리 & 보안형',
+    categoryMatch: ['Productivity', 'Mac & PC'],
+    desc: '바탕화면 파일 폭탄과 비밀번호 허점 ➔ 10분 만에 끝내는 미니멀 정리 및 보안 세팅',
+    instruction: `[도입부 패턴: 10분 완성 미니멀 정리 & 보안형]
+- 바탕화면에 쌓인 수백 개의 임시 파일과 만성적인 알림 공해로 집중력을 빼앗기고 있는 현대인의 고질병을 짚으며 시작하세요.
+- 오늘 딱 10분 투자해 복잡한 디지털 공간을 완벽히 정리하고 보안까지 탄탄하게 잠그는 미니멀 세팅 가이드를 전개하세요.`,
+  },
+];
+
+function selectWritingPattern(topic) {
+  const matched = WRITING_PATTERNS.filter((p) => p.categoryMatch.includes(topic.category));
+  const pool = matched.length > 0 ? matched : WRITING_PATTERNS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+const GEMINI_INSTRUCTIONS = `당신은 대한민국 최고 권위의 10년 차 IT·생산성 테크 에디터이자 테크플로우(TechFlow) 수석 필진입니다.
+실무자들은 뜬구름 잡는 이론이 아니라, 실제 업무 시간을 줄여주고 실수를 방지해 주는 구체적인 실전 세팅과 수치를 원합니다.
 
 규칙:
-- frontmatter(--- 블록)는 절대 포함하지 마세요. 본문만 출력합니다.
-- H1(#)은 쓰지 말고 H2(##)와 H3(###)만 사용합니다.
-- 글자 수 규격: 본문 전체는 공백 포함 2,500자 ~ 4,500자 내외(반드시 2,000자 이상 6,000자 미만)로 가독성 높고 핵심적인 정보 밀도를 갖추어 작성하세요.
-- 단계별 실행 안내, 비교 표(마크다운 표) 1개, 인용문 팁, Q&A 형태의 문제 해결 섹션을 포함합니다.
-- 과장된 마케팅 문구 없이 직접 사용해 본 것처럼 구체적인 수치와 설정 경로를 씁니다.
-- 존댓말(습니다체)로 작성합니다.
-- 코드 펜스로 전체를 감싸지 마세요.`;
+1. 글의 시작(첫 1~2문단)은 반드시 지정된 [도입부 패턴]에 맞춰 생생한 업무 현장 경험담이나 지인의 SOS 상담 일화로 몰입감 있게 시작하세요.
+2. frontmatter(--- 블록)는 절대 포함하지 마세요. 본문만 출력합니다.
+3. H1(#)은 쓰지 말고 H2(##)와 H3(###)만 사용합니다.
+4. 글자 수 규격: 본문 전체는 공백 포함 2,500자 ~ 4,500자 내외(반드시 2,000자 이상 6,000자 미만)로 가독성 높고 핵심적인 정보 밀도를 갖추어 작성하세요.
+5. 단계별 실행 안내, 비교 표(마크다운 표) 1개 이상, 인용문 팁(> 💡 팁), Q&A 형태의 문제 해결 섹션을 풍부하게 포함합니다.
+6. 과장된 마케팅 문구 없이 직접 사용해 본 것처럼 구체적인 수치(초, 분, %, 단축키)와 설정 경로를 명시합니다.
+7. 존댓말(습니다체/해요체)로 전문적이면서도 친절하게 작성합니다.
+8. 코드 펜스로 본문 전체를 감싸지 마세요.`;
 
 /** Optional Gemini draft. Any failure returns null so the template takes over. */
 async function generateWithGemini(topic) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
+
+  const selectedPattern = selectWritingPattern(topic);
+  console.log(`[pattern] 🎨 Selected IT writing pattern: "${selectedPattern.name}" (${selectedPattern.id})`);
 
   const outline = JSON.stringify(
     {
@@ -2830,7 +3010,16 @@ async function generateWithGemini(topic) {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: `${GEMINI_INSTRUCTIONS}\n\n개요:\n${outline}` }] }],
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  text: `${GEMINI_INSTRUCTIONS}\n\n${selectedPattern.instruction}\n\n개요:\n${outline}`,
+                },
+              ],
+            },
+          ],
           generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
         }),
         signal: AbortSignal.timeout(90_000),
@@ -2913,7 +3102,7 @@ async function main() {
   const forcedSlug = slugArgIndex !== -1 ? args[slugArgIndex + 1] : undefined;
 
   const existing = await readExisting();
-  const { topic, fresh } = selectTopic(existing, forcedSlug);
+  const { topic, fresh } = await selectTopic(existing, forcedSlug);
 
   if (!CATEGORIES.includes(topic.category)) {
     throw new Error(`Category "${topic.category}" is not in the content schema enum.`);
