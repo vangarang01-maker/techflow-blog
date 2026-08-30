@@ -56,4 +56,6 @@ jobs:
 
       - name: Push to origin main
         if: steps.check.outputs.changed == 'true'
-        run: git push origin HEAD:main
+        run: |
+          git pull --rebase origin main
+          git push origin HEAD:main

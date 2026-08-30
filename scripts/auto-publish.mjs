@@ -3079,6 +3079,20 @@ function normalizeMarkdown(text) {
     .replace(/~\s*(\d+)/g, '～$1');
 }
 
+function getKstDateString() {
+  const formatter = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = formatter.formatToParts(new Date());
+  const year = parts.find((p) => p.type === 'year')?.value;
+  const month = parts.find((p) => p.type === 'month')?.value;
+  const day = parts.find((p) => p.type === 'day')?.value;
+  return `${year}-${month}-${day}`;
+}
+
 function renderFrontmatter(topic, pubDate) {
   return [
     '---',
@@ -3119,7 +3133,7 @@ async function main() {
     throw new Error(`Generated body is ${body.length} chars, below the ${MIN_CHARS} minimum.`);
   }
 
-  const pubDate = new Date().toISOString();
+  const pubDate = getKstDateString();
   const markdown = `${renderFrontmatter(topic, pubDate)}\n\n${body}\n`;
   const filename = `${topic.slug}.md`;
   const filePath = path.join(BLOG_DIR, filename);
